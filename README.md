@@ -1,2 +1,2 @@
-# gpkerr
-gpkerr provides surrogate ringdown amplitudes for mergers of binary black holes
+# pyrem
+pyrem provides surrogate fits for binary black hole remnants
