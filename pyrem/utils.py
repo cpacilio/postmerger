@@ -26,6 +26,10 @@ def q_from_eta(eta):
     -------
         float or array_like
     """
+    if not np.all(eta<=0.25):
+        raise ValueError("eta must be no greater than 0.25.")
+    if eta==0.:
+        return np.inf
     out = (1-2*eta+np.sqrt(abs(1-4*eta)))*0.5/eta
     return out
 
