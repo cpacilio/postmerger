@@ -4,13 +4,83 @@ import os
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
 import numpy as np
-import astropy.constants as cst
-##
-cc = cst.c.value
-msun = cst.M_sun.value
-G = cst.G.value
+
+## fundamental constants from astropy
+G = 6.6743e-11 ## gravitational constant
+msun = 1.988409870698051e+30 ## solar mass
+cc = 299792458.0 ## speed of light
 ## solar mass in secs
-tsun = msun*G/cc**3 ## secs
+tsun = msun*G/cc**3
+
+
+def custom_factorial(k):
+    """
+    Custom factorial that sets to zero negative arguments.
+    Useful in the calculation of the Wigner 3j-symbol.
+    """
+    if k<0:
+        return 0.
+    return np.math.factorial(k)
+
+
+def Wigner3j(j1,j2,j3,m1,m2,m3):
+    """
+    Returns Wigner 3j-symbol.
+    Ref: https://mathworld.wolfram.com/Wigner3j-Symbol.html .
+    See also: https://en.wikipedia.org/wiki/3-j_symbol .
+    """
+    if m1+m2+m3:
+        return 0.
+    ## verify triangular condition
+    if (j3>j1+j2) or (j3<abs(j1-j2)):
+        return 0.
+    if abs(m1)>j1:
+        return 0.
+    if not isinstance(j1-m1,int):
+        return 0.
+    if abs(m2)>j2:
+        return 0.
+    if not isinstance(j2-m2,int):
+        return 0.
+    if abs(m3)>j3:
+        return 0.
+    if not isinstance(j3-m3,int):
+        return 0.
+    if not isinstance(j1+j2+j3,int):
+        return 0.
+    ##
+    kmin = max(0,int(j2-j3-m1),int(j1-j3+m2))
+    kmax = min(int(j1+j2-j3),int(j1-m1),int(j2+m2))
+    tmp = [(-1)**k/custom_factorial(int(k))\
+            /custom_factorial(int(j1+j2-j3-k))\
+            /custom_factorial(int(j1-m1-k))\
+            /custom_factorial(int(j2+m2-k))\
+            /custom_factorial(int(j3-j2+m1+k))\
+            /custom_factorial(int(j3-j1-m2+k))\
+            for k in range(kmin,kmax+1)]
+    out = (-1)**int(j1-j2-m3)*np.sqrt(custom_factorial(int(j1+j2-j3))*\
+            custom_factorial(int(j1-j2+j3))*\
+            custom_factorial(int(-j1+j2+j3))\
+            /custom_factorial(int(j1+j2+j3+1)))*\
+            np.sqrt(custom_factorial(int(j1-m1))*\
+            custom_factorial(int(j1+m1))*\
+            custom_factorial(int(j2-m2))*\
+            custom_factorial(int(j2+m2))*\
+            custom_factorial(int(j3-m3))*\
+            custom_factorial(int(j3+m3)))*\
+            sum(tmp)
+    return out
+
+
+def clebsch_gordan(j1,m1,j2,m2,j3,m3):
+    """
+    Returns Clebsch Gordan coefficients as function of the Wigner 3j-symbol.
+    Ref: https://mathworld.wolfram.com/Clebsch-GordanCoefficient.html .
+    """
+    out = (-1)**int(j1-j2+m3)*np.sqrt(2*j3+1)*\
+        Wigner3j(j1,j2,j3,m1,m2,-m3)
+    return out
+
 
 def q_from_eta(eta):
     """
@@ -117,7 +187,18 @@ def final_mass(mass1,mass2,spin1,spin2,alpha=0.,beta=0.,gamma=0.,aligned_spins=F
         If 'B12', it uses the fit in https://arxiv.org/abs/1206.3803 .
         If 'phenom', it uses the fit in https://arxiv.org/abs/1508.07250 .
         Default: 'B12'.
-    aligned_spins : bool, optional
+    aligned_spins :we expand in spherical harmonics.
+    We call "child mode" the generic mode (lt,m,n) corresponding
+      to one term of the expansion.
+    Alternatively, (l,m,n) is the mode the contributes to the (lt,m) component
+      when the waveform is expanded in spherical harmonics.
+
+    Args:
+        m (int): azimuthal number
+        lt (int): angular number of the child mode
+        l (int): angular number of the parent mode
+        n (int): overtone number
+ bool, optional
         Whethter to assume aligned spins. If True, spin1 and spin2 can also be negative.
         Enabling this option overwrites the parameters alpha, beta ang gamma, setting them to zero.
         Default: False.
@@ -322,7 +403,6 @@ def qnm_Kerr(mass,spin,mode,prograde=1,qnm_method='L18',SI_units=False):
         frequency : float or array-like
         damping time : float or array_like
     """
-
     mode_tmp = tuple(mode)
 
     allowed_methods = ['L18','interp']
@@ -415,3 +495,119 @@ def qnm_Kerr(mass,spin,mode,prograde=1,qnm_method='L18',SI_units=False):
         tau = tau*tsun
     
     return f, tau
+
+
+def spherical_spheroidal_mixing(lm,mode,spin,method='BK14',prograde=1,qnm_method='interp',\
+                               enforce_sxs_convention=True,s=-2,fitting_coeffs={}):
+    """
+    Returns spherical-spheroidal mixing coefficients mu_{m,l,lt,n} as defined by Eq. (5) in https://arxiv.org/abs/1408.1860 .
+    Note that they are the complex conjugate of the mixing coefficients C_{lt,l,m,n} defined in https://arxiv.org/abs/1908.10377 .
+
+    Parameters
+    ----------
+    lm : tuple
+        Indices (lt,m) of the spherical harmonic.
+    mode : tuple
+        Indices (l,m,n) of the spheroidal harmonic.
+    spin : float or array_like
+        Dimensionless spin of the Kerr black hole.
+    method : str, optional
+        The method used to compute mixing coefficients. Allowed options: ['BK14','PT73'].
+        If 'BK14', it uses the fitting coefficients presented in https://arxiv.org/abs/1408.1860 and provided at https://pages.jh.edu/eberti2/ringdown/ .
+        If 'PT73', it uses the leading order expressions in perturbation theory, see Press & Teukolsky 1973, ` Perturbations of a rotating black hole. II. Dynamical stability of the Kerr metric`.
+        Default: 'BK14'.
+    prograde : int, optional
+        Allowed options: [-1,1]. If 1, return mixing coefficients for modes. If -1, return mixing coefficients for retrograde modes.
+        Default: 1.
+    qnm_method : str, optional
+        The method used to approximate the Kerr spectrum. Allowed options: ['interp','L18'].
+        If 'interp', it interpolates linearly from the numerical tables provided at https://pages.jh.edu/eberti2/ringdown/ .
+            They are only defined for spin in [-0.998,0.998] and any use outside this range is not guaranteed to produce sensible results.
+            Note that we only support 2<=l<=5, but original tables are also available for l=6 and 7.
+        If 'L18', it uses the fits in https://arxiv.org/abs/1810.03550 . They are defined for spin in the whole physical range [-1,1].
+        Default: 'interp'.
+    enforce_sxs_convention : bool, optional
+        If True, applies a sign correction to match the conventions of SXS. See footnote 4 of https://arxiv.org/abs/1902.02731 .
+        Default: True.
+
+    Returns
+    -------
+        mu_re : float or array_like
+            Real part of the mixing coefficients.
+        mu_im : float or array_like
+            Imaginary part of the mixing coefficients.
+    """
+    allowed_methods = ['BK14','PT74']
+    if method not in allowed_methods:
+        raise ValueError("method must be one of "+str(allowed_methods))
+    
+    if lm[1]!=mode[1]:
+        raise ValueError("lm and mode must have the same azimuthal number m.")
+    
+    lt,m = lm
+    l,_,n = mode
+
+    if method=='PT74':
+        ## use clebsch gordan coeff
+        if lt==l:
+            return 1, 0
+        f, tau = qnm_Kerr(1.,spin,mode=mode,prograde=prograde,\
+                      qnm_method=qnm_method)
+        omega = 2*np.pi*f - 1j/tau
+        ##
+        out = -2*(spin*omega)*s*np.sqrt((2*l+1)/(2*lt+1))*\
+            clebsch_gordan(l,m,1,0,lt,m)*\
+            clebsch_gordan(l,-s,1,0,lt,-s)
+        out += (spin*omega)**2*\
+            2/3*np.sqrt((2*l+1)/(2*lt+1))*\
+            clebsch_gordan(l,m,2,0,lt,0)*\
+            clebsch_gordan(l,-s,2,0,lt,-s)
+        out = out/(l*(l+1)-lt*(lt+1))
+        mu_re = np.real(out)
+        mu_im = -np.imag(out)
+    #####
+    elif method=='BK14':
+        ## use Berti & Klein fits
+        ## use the fits at https://arxiv.org/abs/1408.1860
+        ## available at https://pages.jh.edu/eberti2/ringdown/
+        if fitting_coeffs=={}:
+            filename = dir_path+'/../data/berti_klein_mixing/swsh_fits.dat'
+            x = np.loadtxt(filename,dtype='object')
+            for xi in x:
+                mlln = tuple(xi[:4].astype(int))
+                fitting_coeffs[mlln] = [float(c) for c in xi[4:12]]
+        allowed_keys = list(fitting_coeffs.keys())
+        mlln = (m,lt,l,n)
+        fre, fim = 1., 1.
+        sign_p = prograde
+        ## if spins have mixed signature
+        if np.any((spin>=0)*(spin<0)):
+            mask = spin>=0
+            mu_re = np.zeros_like(spin)
+            mu_im = np.zeros_like(spin)
+            mu_re[mask], mu_im[mask] = spherical_spheroidal_mixing(lm,mode,spin[mask],s=s,prograde=prograde,\
+                            method=method,qnm_method=qnm_method,enforce_sxs_convention=enforce_sxs_convention)
+            mu_re[~mask], mu_im[~mask] = spherical_spheroidal_mixing(lm,mode,spin[~mask],s=s,prograde=prograde,\
+                              method=method,qnm_method=qnm_method,enforce_sxs_convention=enforce_sxs_convention)
+            return mu_re, mu_im
+        ## elif spins are all negative
+        elif np.all(spin<0):
+            sign_p = -sign_p
+            fim *= -1
+        if np.sign(mode[0]+0.5)*sign_p < 0:
+            mlln = (-m,lt,l,n)
+            fre *= (-1)**(l+lt)
+            fim *= (-1)**(l+lt+1)
+        if mlln not in allowed_keys:
+            raise KeyError('(%s,%s,%s,%s) mode is not allowed by this method. Allowed modes are: '%mlln+str(allowed_keys))
+        p1_re, p2_re, p3_re, p4_re, p1_im, p2_im, p3_im, p4_im = fitting_coeffs[mlln]
+        mu_re = p1_re*abs(spin)**p2_re + p3_re*abs(spin)**p4_re + 1 - np.sign(abs(lt-l))
+        mu_im = p1_im*abs(spin)**p2_im + p3_im*abs(spin)**p4_im
+        mu_re = mu_re*fre
+        mu_im = mu_im*fim
+    #####
+    if enforce_sxs_convention:
+        mu_re *= (-1)**(l+lt)
+        mu_im *= (-1)**(l+lt)
+    ####
+    return mu_re, mu_im
