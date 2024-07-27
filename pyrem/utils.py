@@ -567,6 +567,7 @@ def spherical_spheroidal_mixing(lm,mode,spin,method='BK14',prograde=1,qnm_method
         mu_im = -np.imag(out)
     #####
     elif method=='BK14':
+        print(spin)
         ## use Berti & Klein fits
         ## use the fits at https://arxiv.org/abs/1408.1860
         ## available at https://pages.jh.edu/eberti2/ringdown/
@@ -581,7 +582,7 @@ def spherical_spheroidal_mixing(lm,mode,spin,method='BK14',prograde=1,qnm_method
         fre, fim = 1., 1.
         sign_p = prograde
         ## if spins have mixed signature
-        if np.any((spin>=0)*(spin<0)):
+        if np.mean(spin<0) and np.mean(spin<0)!=1:
             mask = spin>=0
             mu_re = np.zeros_like(spin)
             mu_im = np.zeros_like(spin)
