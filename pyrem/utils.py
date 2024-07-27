@@ -305,7 +305,7 @@ def qnm_Kerr(mass,spin,mode,prograde=1,qnm_method='L18',SI_units=False):
         The method used to approximate the Kerr spectrum. Allowed options: ['interp','L18'].
         If 'interp', it interpolates linearly from the numerical tables provided at https://pages.jh.edu/eberti2/ringdown/ .
             They are only defined for spin in [-0.998,0.998] and any use outside this range is not guaranteed to produce sensible results.
-            Note that we only support 2<=l<=5, but orinal tables are also available for l=6 and 7.
+            Note that we only support 2<=l<=5, but original tables are also available for l=6 and 7.
         If 'L18', it uses the fits in https://arxiv.org/abs/1810.03550 . They are defined for spin in the whole physical range [-1,1].
         Default: 'interp'.
     SI_units : bool, optional
@@ -391,7 +391,6 @@ def qnm_Kerr(mass,spin,mode,prograde=1,qnm_method='L18',SI_units=False):
                 raise ValueError('Tabulated values for the (%s,%s,%s) mode are not stored and cannot be interpolated'%mode)
             f = sign_p*sign_m*np.interp(np.abs(spin),chi,omega_re)/mass/2/np.pi
             tau = mass/np.interp(np.abs(spin),chi,-omega_im)
-        
         ## elif all spins are negative
         elif np.all(spin<0):
             f, tau = qnm_Kerr(mass,-spin,mode=(l,-sign_m*m,n),prograde=-sign_p,qnm_method='interp')
