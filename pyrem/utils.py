@@ -1,5 +1,16 @@
 ## THIS MODULE COLLECTS USEFUL FUNCTIONS ##
 ## FOR REMNANT AND RINGDOWN PROPERTIES ##
+import os 
+dir_path = os.path.dirname(os.path.realpath(__file__))
+
+import numpy as np
+import astropy.constants as cst
+##
+cc = cst.c.value
+msun = cst.M_sun.value
+G = cst.G.value
+## solar mass in secs
+tsun = msun*G/cc**3 ## secs
 
 def q_from_eta(eta):
     """
@@ -91,21 +102,21 @@ def final_mass(mass1,mass2,spin1,spin2,alpha=0.,beta=0.,gamma=0.,aligned_spins=F
     spin2 : float or array_like
         Magnitude of the dimensionless spin of the secondary component.
     alpha : float or array_like, optional
-        Angle between the progenitor spins. Default: 0
+        Angle between the progenitor spins. Default: 0.
         This parameter is never used and it is made available ony for consistency with the arguments of the final_spin function.
     beta : float or array_like, optional
-        Angle between spin1 and the z direction. Default: 0
+        Angle between spin1 and the z direction. Default: 0.
     gamma : float or array-like,optional
-        Angle between spin2 and the z direction. Default: 0
+        Angle between spin2 and the z direction. Default: 0.
     method : str, optional
         Method to use to compute the final spin. Allowed methods: ['B12','phenom'].
         If 'B12', it uses the fit in https://arxiv.org/abs/1206.3803 .
         If 'phenom', it uses the fit in https://arxiv.org/abs/1508.07250 .
-        Default: B12
+        Default: 'B12'.
     aligned_spins : bool, optional
         Whethter to assume aligned spins. If True, spin1 and spin2 can also be negative.
         Enabling this option overwrites the parameters alpha, beta ang gamma, setting them to zero.
-        Default: False
+        Default: False.
 
     Returns
     -------
@@ -179,29 +190,29 @@ def final_spin(mass1,mass2,spin1,spin2,alpha=0.,beta=0.,gamma=0.,method='H16',al
     spin2 : float or array_like
         Magnitude of the dimensionless spin of the secondary component.
     alpha : float or array_like, optional
-        Angle between the progenitor spins. Default: 0
+        Angle between the progenitor spins. Default: 0.
         This parameter is never used and it is made available only for consistency with the arguments of the final_spin function.
     beta : float or array_like, optional
-        Angle between spin1 and the z direction. Default: 0
+        Angle between spin1 and the z direction. Default: 0.
     gamma : float or array-like,optional
-        Angle between spin2 and the z direction. Default: 0
+        Angle between spin2 and the z direction. Default: 0.
     method : str, optional
-        Method to use to compute the final spin. Allowed methods: ['H16','phenom']
+        Method to use to compute the final spin. Allowed options: ['H16','phenom'].
         If 'H16', it uses the fit in https://arxiv.org/abs/1605.01938 .
         If 'phenom', it uses the fit in https://arxiv.org/abs/1508.07250 .
-        Default: H16
+        Default: 'H16'.
     aligned_spins : bool, optional
         Whethter to assume aligned spins. If True, spin1 and spin2 can also be negative.
         Enabling this option overwrites the parameters alpha, beta ang gamma, setting them to zero.
-        Default: False
+        Default: False.
     return_angle : bool, optional
         Whether to return the angle between the final spin and the orbital plane.
-        Default: False
+        Default: False.
         
-
     Returns
     -------
-        float or array_like, float or array_like (optional)
+        final spin: float or array_like
+        angle : float or array_like (optional)
     """
     allowed_methods = ['B12','phenom']
     if method not in allowed_methods:
@@ -273,3 +284,131 @@ def final_spin(mass1,mass2,spin1,spin2,alpha=0.,beta=0.,gamma=0.,method='H16',al
         return np.clip(a_fin,-1.,1.), theta_fin
     else:
         return np.clip(a_fin,-1.,1.)
+
+def qnm_Kerr(mass,spin,mode,prograde=1,qnm_method='L18',SI_units=False):
+    """
+    Returns the frequency and the damping time of a Kerr black hole.
+    Conventions follow XXX.
+
+    Parameters
+    ----------
+    mass : float or array-like
+        Mass of the Kerr black hole.
+    spin : float or array-like
+        Dimensionless spin of the kerr black hole.
+    mode : tuple
+        A tuple (l,m,n) with the indices labeling the mode.
+    prograde : int, optional
+        Allowed options: [-1,1]. If 1, return prograde modes. If -1, return retrograde modes.
+        Default: 1.
+    qnm_method : str, optional
+        The method used to approximate the Kerr spectrum. Allowed options: ['interp','L18'].
+        If 'interp', it interpolates linearly from the numerical tables provided at https://pages.jh.edu/eberti2/ringdown/ .
+            They are only defined for spin in [-0.998,0.998] and any use outside this range is not guaranteed to produce sensible results.
+            Note that we only support 2<=l<=5, but orinal tables are also available for l=6 and 7.
+        If 'L18', it uses the fits in https://arxiv.org/abs/1810.03550 . They are defined for spin in the whole physical range [-1,1].
+        Default: 'interp'.
+    SI_units : bool, optional
+        If True, returns frenquency in units of Hz and damping time in units of s.
+        If False, returns frequency and damping time in dimensionless units, rescaling them by tsun=G*M_SUM/c**3.
+        Default: False.
+
+    Returns
+    -------
+        frequency : float or array-like
+        damping time : float or array_like
+    """
+
+    mode_tmp = tuple(mode)
+
+    allowed_methods = ['L18','interp']
+    if qnm_method not in allowed_methods:
+        raise ValueError("qnm_method must be one of "+str(allowed_methods))
+
+    if hasattr(mass,'__len__') and (hasattr(spin,'__len__')) and len(mass)!=len(spin):
+        raise TypeError("mass ans spin must have the same length.")
+    if prograde not in [-1,1]:
+        raise ValueError("prograde must be one of [-1,1].")
+    if not np.all(mass>0):
+        raise ValueError("mass must be greater than zero.")
+    if not np.all(np.abs(spin)<=1):
+        raise ValueError("spin magnitude must be no greater than 1.")
+
+    if qnm_method=='L18':
+        ## use https://arxiv.org/abs/1810.03550
+        mode_tmp = (mode_tmp[0],prograde*mode_tmp[1],mode_tmp[2])
+        spin_tmp = prograde*spin
+        sign_m = np.sign(mode_tmp[1]+0.5)
+        mode_tmp = (mode_tmp[0],abs(mode_tmp[1]),mode_tmp[2])
+        l,m,n = mode_tmp
+        ##
+        kappa = (np.log(2-spin_tmp)/np.log(3))**(1/(2+l-abs(m)))
+        ##
+        A = {(2,2,0):np.array([1.,1.5578,1.9510,2.0997,1.4109,0.4106]),\
+            (2,2,1):np.array([1.,1.8709,2.7192,3.0565,2.0531,0.5955]),\
+            (3,3,0):np.array([1.5,2.0957,2.4696,2.6655,1.7584,0.4991]),\
+            (3,3,1):np.array([1.5,2.3391,3.1399,3.5916,2.4490,0.7004]),\
+            (4,4,0):np.array([2.,2.6589,2.9783,3.2184,2.1276,0.6034]),\
+            (4,3,0):np.array([1.5,0.2050,3.1033,4.2361,3.0289,0.9084]),\
+            (5,5,0):np.array([2.5,3.2405,3.4906,3.7470,2.4725,0.6994]),\
+            (3,2,0):np.array([1.0225,0.2473,1.7047,0.9460,1.5319,2.2805,0.9215]),\
+            (2,1,0):np.array([0.5891,0.1890,1.1501,6.0459,11.1263,9.3471,3.0384])}
+        ##
+        B = {(2,2,0):np.array([0.,2.9031,5.9210,2.7606,5.9143,2.7952]),\
+            (2,2,1):np.array([0.,2.5112,5.4250,2.2857,5.4862,2.4225]),\
+            (3,3,0):np.array([0.,2.9650,5.9967,2.8176,5.9327,2.7817]),\
+            (3,3,1):np.array([0.,2.6497,5.5525,2.3472,5.4435,2.2830]),\
+            (4,4,0):np.array([0.,3.0028,6.0510,2.8775,5.9897,2.8300]),\
+            (4,3,0):np.array([0.,0.5953,3.0162,6.0388,2.8262,5.9152]),\
+            (5,5,0):np.array([0.,3.0279,6.0888,2.9212,6.0365,2.8766]),\
+            (3,2,0):np.array([0.0049,0.6653,3.1383,0.1632,5.7036,2.6852,5.8417]),\
+            (2,1,0):np.array([0.0435,2.2899,5.8101,2.7420,5.8441,2.6694,5.7915])}
+        ##
+        A_mode, B_mode = A[mode_tmp], B[mode_tmp]
+        omega_tilde = 0.
+        for i in range(len(A_mode)):
+            omega_tilde += A_mode[i]*np.exp(1j*B_mode[i])*kappa**i
+        omega_re = np.real(omega_tilde)/mass
+        omega_im = np.imag(omega_tilde)
+        f = sign_m*omega_re/2/np.pi
+        tau = mass/omega_im
+
+    elif qnm_method=='interp':
+        sign_p = prograde
+        ## data available at https://pages.jh.edu/eberti2/ringdown/
+        sign_m = int(np.sign(mode_tmp[1]+0.5))
+        mode_tmp = (mode_tmp[0],abs(mode_tmp[1]),mode_tmp[2])
+        l,m,n = mode_tmp
+        ## if all spins are non-negative
+        if np.all(spin>=0):
+            if sign_p>=0:
+                filename = dir_path+'/../data/bcw_qnm_tables/l%s/n%sl%sm%s.dat'%(l,n+1,l,m)
+            elif sign_p<0:
+                filename = dir_path+'/../data/bcw_qnm_tables/l%s/n%sl%smm%s.dat'%(l,n+1,l,m)
+            try:
+                chi, omega_re, omega_im, _, _ = np.loadtxt(filename).T
+            except:
+                raise ValueError('Tabulated values for the (%s,%s,%s) mode are not stored and cannot be interpolated'%mode)
+            f = sign_p*sign_m*np.interp(np.abs(spin),chi,omega_re)/mass/2/np.pi
+            tau = mass/np.interp(np.abs(spin),chi,-omega_im)
+        
+        ## elif all spins are negative
+        elif np.all(spin<0):
+            f, tau = qnm_Kerr(mass,-spin,mode=(l,-sign_m*m,n),prograde=-sign_p,qnm_method='interp')
+        ## elif spins have mixed signature
+        else:
+            mask = spin>=0
+            f = np.zeros_like(spin)
+            tau = np.zeros_like(spin)
+            if not hasattr(mass,'__len__'):
+                mass_tmp = np.ones_like(spin)*mass
+            else:
+                mass_tmp = mass
+            f[mask], tau[mask] = qnm_Kerr(mass_tmp[mask],spin[mask],mode=(l,sign_m*m,n),prograde=sign_p,qnm_method='interp')
+            f[~mask], tau[~mask] = qnm_Kerr(mass_tmp[~mask],-spin[~mask],mode=(l,-sign_m*m,n),prograde=-sign_p,qnm_method='interp')
+    
+    if SI_units:
+        f = f/tsun
+        tau = tau*tsun
+    
+    return f, tau
