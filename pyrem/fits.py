@@ -418,7 +418,7 @@ class CustomGPR(RegressorMixin,BaseEstimator):
         y_true: array_like of shape (n_samples,) or (n_samples, n_targets)
             Correct target values.
 
-        sample_weight: array_like of shape (n_samples,). Default= None.
+        sample_weight: array_like of shape (n_samples,). Default=None.
             Individual weights for each sample.
             None (default) is equivalent to 1-D sample_weight filled with ones.
             """
