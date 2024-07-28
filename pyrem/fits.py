@@ -6,6 +6,339 @@ from sklearn.linear_model import LinearRegression
 from sklearn.metrics import r2_score, mean_squared_error
 from sklearn.base import BaseEstimator, RegressorMixin
 
+import numpy as np
+from . import qnm_Kerr, final_mass, final_spin
+
+class AmplitudeFit3dq8():
+
+    def __init__(self,fit_dict):
+        self.fit_amps = fit_dict['amps']
+        self.t0 = fit_dict['time_from_peak']
+        ## deduce modes
+        self.modes = {}
+        for k in self.fit_amps.keys():
+            if k[1]>=0: self.modes[k] = [mode for mode in self.fit_amps[k].keys()]
+
+    def predict_xy_amp(self,mass_ratio,chi1z,chi2z,lm,mode,return_std=False):
+        """
+        Predict the values of A^x and A^y corresponding to the query points (mass_ratio,chi1z,chi2z).
+
+        Parameters
+        ----------
+        mass_ratio: array_like of shape (n_samples,) or float
+            Mass ratio of the query points.
+
+        chi1z: array_like of shape (n_samples,) or float
+            Projection along the z axis of the primary spin.
+
+        chi2z: array_like of shape (n_samples,) or float
+            Projection along the z axis of the secondary spin.
+
+        lm: tuple_like object
+            Ordered couple (l,m) specifying the angular number l and azimuthal number m of the harmonic.
+
+        mode: tuple_like object
+            Ordered tuple specifying the queried quasi-normal mode.
+            For linear modes, ordered triple (l,m,n).
+            For quadratic modes, ordered couple of the form ((l1,m1,n1),(l2,m2,n2)).
+
+        return_std: bool. Default=False.
+            Whether or not to return the standard deviation of the predictive distribution at the query points.
+        """
+        X = self._transform_X(mass_ratio,chi1z,chi2z)
+        if lm==(2,2) and mode==(2,2,0):
+            amp_x = self.fit_amps[lm][mode].predict(X,return_std=return_std)
+            amp_y = np.zeros_like(mass_ratio)
+            if return_std:
+                mu_x, std_x = amp_x
+                mu_y = amp_y
+                std_y = np.zeros_like(mu_y)
+                return mu_x, mu_y, std_x, std_y
+            else:
+                return amp_x, amp_y
+        else:
+            if return_std:
+                out_mu, out_std = self.fit_amps[lm][mode].predict(X,return_std=return_std)
+                mu_x, mu_y = out_mu.T
+                std_x, std_y = out_std.T
+                return mu_x, mu_y, std_x, std_y
+            else:
+                out_mu = self.fit_amps[lm][mode].predict(X,return_std=return_std)
+                mu_x, mu_y = out_mu.T
+                return mu_x, mu_y
+
+    def predict_amp(self,mass_ratio,chi1z,chi2z,\
+                      lm,mode,return_std=False,start_time=None):
+        """
+        Predict the value of abs(A^x+iA^y) corresponding to the query points (mass_ratio,chi1z,chi2z).
+
+        Parameters
+        ----------
+        mass_ratio: array_like of shape (n_samples,) or float
+            Mass ratio of the query points.
+
+        chi1z: array_like of shape (n_samples,) or float
+            Projection along the z axis of the primary spin.
+
+        chi2z: array_like of shape (n_samples,) or float
+            Projection along the z axis of the secondary spin.
+
+        lm: tuple_like object
+            Ordered couple (l,m) specifying the angular number l and azimuthal number m of the harmonic.
+
+        mode: tuple_like object
+            Ordered tuple specifying the queried quasi-normal mode.
+            For linear modes, ordered triple (l,m,n).
+            For quadratic modes, ordered couple of the form ((l1,m1,n1),(l2,m2,n2)).
+
+        return_std: bool. Default=False.
+            Whether or not to return the standard deviation of the predictive distribution at the query points.
+
+        start_time: float or None. Default=None.
+            Start time of the ringdown waveform, relative to the peak of |h_{22}|.
+            If None (default), assume that start_time=self.t0.
+        """
+        if return_std:
+            mu_x, mu_y, std_x, std_y = self.predict_xy_amp(mass_ratio,chi1z,chi2z,lm,mode,return_std=return_std)
+            mu_abs = np.sqrt(mu_x**2+mu_y**2)
+            std_abs = np.sqrt((mu_x*std_x)**2+(mu_y*std_y)**2)/mu_abs
+            if start_time is not None:
+                mu_abs = self._shift_amp(mu_abs,mass_ratio,chi1z,chi2z,lm,mode,start_time)
+                std_abs = self._shift_amp(std_abs,mass_ratio,chi1z,chi2z,lm,mode,start_time)
+            return mu_abs, std_abs
+        else:
+            mu_x, mu_y = self.predict_xy_amp(mass_ratio,chi1z,chi2z,lm,mode,return_std=return_std)
+            mu_abs = np.sqrt(mu_x**2+mu_y**2)
+            if start_time is not None:
+                mu_abs = self._shift_amp(mu_abs,mass_ratio,chi1z,chi2z,lm,mode,start_time)
+            return mu_abs
+
+    def predict_phase(self,mass_ratio,chi1z,chi2z,lm,mode,return_std=False,start_time=None):
+        """
+        Predict the value of angle(A^x+iA^y)/beta corresponding to the query points (mass_ratio,chi1z,chi2z).
+        beta is a correction factor introduced in CITE-THE-PAPER to help fitting of A^x and A^y.
+
+        Parameters
+        ----------
+        mass_ratio: array_like of shape (n_samples,) or float
+            Mass ratio of the query points.
+
+        chi1z: array_like of shape (n_samples,) or float
+            Projection along the z axis of the primary spin.
+
+        chi2z: array_like of shape (n_samples,) or float
+            Projection along the z axis of the secondary spin.
+
+        lm: tuple_like object
+            Ordered couple (l,m) specifying the angular number l and azimuthal number m of the harmonic.
+
+        mode: tuple_like object
+            Ordered tuple specifying the queried quasi-normal mode.
+            For linear modes, ordered triple (l,m,n).
+            For quadratic modes, ordered couple of the form ((l1,m1,n1),(l2,m2,n2)).
+
+        return_std: bool. Default=False.
+            Whether or not to return the standard deviation of the predictive distribution at the query points.
+
+        start_time: float or None. Default=None.
+            Start time of the ringdown waveform, relative to the peak of |h_{22}|.
+            If None (default), assume that start_time=self.t0.
+        """
+        beta = 1 + np.mod(lm[1],2)
+        if return_std:
+            mu_x, mu_y, std_x, std_y = self.predict_xy_amp(mass_ratio,chi1z,chi2z,lm,mode,return_std=return_std)
+            mu_abs = np.sqrt(mu_x**2+mu_y**2)
+            mu_phi = np.angle(mu_x + 1j*mu_y)/beta
+            std_phi = np.sqrt((mu_x*std_y)**2+(mu_y*std_y)**2)/mu_abs**2/beta
+            if start_time is not None:
+                mu_phi = self._shift_phase(mu_phi,mass_ratio,chi1z,chi2z,lm,mode,start_time)
+            return mu_phi, std_phi
+        else:
+            mu_x, mu_y = self.predict_xy_amp(mass_ratio,chi1z,chi2z,lm,mode,return_std=return_std)
+            mu_phi = np.angle(mu_x + 1j*mu_y)/beta
+            if start_time is not None:
+                mu_phi = self._shift_phase(mu_phi,mass_ratio,chi1z,chi2z,lm,mode,start_time)
+            return mu_phi
+
+    def sample_xy_amp(self,mass_ratio,chi1z,chi2z,lm,mode,n_samples=1):
+        """
+        Draw samples of of A^x and A^y from the predictive distribution corresponding to the query points (mass_ratio,chi1z,chi2z).
+
+        Parameters
+        ----------
+        mass_ratio: array_like of shape (n_samples_X,) or float
+            Mass ratio of the query points.
+
+        chi1z: array_like of shape (n_samples_X,) or float
+            Projection along the z axis of the primary spin.
+
+        chi2z: array_like of shape (n_samples_X,) or float
+            Projection along the z axis of the secondary spin.
+
+        lm: tuple-like object
+            Ordered couple (l,m) specifying the angular number l and azimuthal number m of the harmonic.
+
+        mode: tuple-like object
+            Ordered tuple specifying the queried quasi-normal mode.
+            For linear modes, ordered triple (l,m,n).
+            For quadratic modes, ordered couple of the form ((l1,m1,n1),(l2,m2,n2)).
+
+        n_samples: int. Default=1.
+            Number of samples to be drawn per query point.
+
+        Returns
+        -------
+        amp_x: array-like of shape (n_samples_X, n_samples)
+        amp_y: array-like of shape (n_samples_X, n_samples)
+        """
+        X = self._transform_X(mass_ratio,chi1z,chi2z)
+        if lm==(2,2) and mode==(2,2,0):
+            amp_x = self.fit_amps[lm][mode].sample_y(X,n_samples=n_samples)
+            amp_y = np.zeros_like(amp_x)
+        else:
+            out = self.fit_amps[lm][mode].sample_y(X,n_samples=n_samples)
+            amp_x, amp_y = out[:,0,:], out[:,1,:]
+        return amp_x, amp_y
+
+    def sample_amp(self,mass_ratio,chi1z,chi2z,lm,mode,n_samples=1,start_time=None):
+        """
+        Draw samples of abs(A^x+iA^y) from the predictive distribution corresponding to the query points (mass_ratio,chi1z,chi2z).
+
+        Parameters
+        ----------
+        mass_ratio: array_like of shape (n_samples_X,) or float
+            Mass ratio of the query points.
+
+        chi1z: array_like of shape (n_samples_X,) or float
+            Projection along the z axis of the primary spin.
+
+        chi2z: array_like of shape (n_samples_X,) or float
+            Projection along the z axis of the secondary spin.
+
+        lm: tuple-like object
+            Ordered couple (l,m) specifying the angular number l and azimuthal number m of the harmonic.
+
+        mode: tuple-like object
+            Ordered tuple specifying the queried quasi-normal mode.
+            For linear modes, ordered triple (l,m,n).
+            For quadratic modes, ordered couple of the form ((l1,m1,n1),(l2,m2,n2)).
+
+        n_samples: int. Default=1.
+            Number of samples to be drawn per query point.
+
+        start_time: float or None. Default=None.
+            Start time of the ringdown waveform, relative to the peak of |h_{22}|.
+            If None (default), assume that start_time=self.t0.
+
+        Returns
+        -------
+        amp: array-like of shape (n_samples_X, n_samples)
+
+        """
+        amp_x, amp_y = self.sample_xy_amp(mass_ratio,chi1z,chi2z,lm,mode,n_samples=n_samples)
+        amp = np.sqrt(amp_x**2+amp_y**2)
+        if start_time is not None:
+            amp = np.array([self._shift_amp(amp_k,mass_ratio,chi1z,chi2z,lm,mode,start_time) for amp_k in amp.T])
+        return amp
+
+    def sample_phase(self,mass_ratio,chi1z,chi2z,lm,mode,n_samples=1,start_time=None):
+        """
+        Draw samples of angle(A^x+iA^y)/beta from the predictive distribution corresponding to the query points (mass_ratio,chi1z,chi2z).
+        beta is a correction factor introduced in CITE-THE-PAPER to help fitting of A^x and A^y.
+
+        Parameters
+        ----------
+        mass_ratio: array_like of shape (n_samples,) or float
+            Mass ratio of the query points.
+
+        chi1z: array_like of shape (n_samples,) or float
+            Projection along the z axis of the primary spin.
+
+        chi2z: array_like of shape (n_samples,) or float
+            Projection along the z axis of the secondary spin.
+
+        lm: tuple-like object
+            Ordered couple (l,m) specifying the angular number l and azimuthal number m of the harmonic.
+
+        mode: tuple-like object
+            Ordered tuple specifying the queried quasi-normal mode.
+            For linear modes, ordered triple (l,m,n).
+            For quadratic modes, ordered couple of the form ((l1,m1,n1),(l2,m2,n2)).
+
+        n_samples: int. Default=1.
+            Number of samples to be drawn per query point.
+
+        start_time: float or None. Default=None
+            Start time of the ringdown waveform, relative to the peak of |h_{22}|.
+            If None (default), assume that start_time=self.t0.
+
+        Returns
+        -------
+        phase: array-like of shape (n_samples_X, n_samples)
+
+        """
+        beta = 1 + np.mod(lm[1],2)
+        amp_x, amp_y = self.sample_amp_xy_amp(mass_ratio,chi1z,chi2z,lm,mode,n_samples=n_samples)
+        phi = np.angle(amp_x + 1j*amp_y)/beta
+        if start_time is not None:
+            phi = np.array([self._shift_phase(phi_k,mass_ratio,chi1z,chi2z,lm,mode,start_time) for phi_k in phi.T])
+        return phi
+
+    def _transform_X(self,mass_ratio,chi1z,chi2z):
+        mass1 = mass_ratio/(1+mass_ratio)
+        mass2 = 1/(1+mass_ratio)
+        chip = chi1z*mass1+chi2z*mass2
+        chim = chi1z*mass1-chi2z*mass2
+        eta = np.clip(mass_ratio/(1+mass_ratio)**2,0,0.25)
+        delta = np.sqrt(1-4*eta)
+        out = np.vstack((delta,chip,chim)).T
+        return out
+
+    def _shift_amp(self,amp,mass_ratio,chi1z,chi2z,lm,mode,start_time,qnm_method='interp'):
+        if start_time==self.t0:
+            return amp
+        DT = start_time - self.t0
+        mass1 = mass_ratio/(1+mass_ratio)
+        mass2 = 1/(1+mass_ratio)
+        mf = final_mass(mass1,mass2,chi1z,chi2z,method=1)
+        sf = final_spin(mass1,mass2,chi1z,chi2z,aligned_spins=True,method=1)
+        if hasattr(mode[0],'__len__'):
+            ## handle quadratic mode
+            inv_tau = 0.
+            for linear_mode in mode:
+                inv_tau += 1./qnm_Kerr(mf,sf,linear_mode,qnm_method=qnm_method)[1]
+        else:
+            ## handle linear mode
+            inv_tau = 1./qnm_Kerr(mf,sf,mode,qnm_method=qnm_method)[1]
+        if lm!=(2,2) or mode!=(2,2,0):
+            inv_tau -= 1./qnm_Kerr(mf,sf,(2,2,0),qnm_method=qnm_method)[1]
+        out = amp*np.exp(-DT*inv_tau)
+        return out
+
+    def _shift_phase(self,phase,mass_ratio,chi1z,chi2z,lm,mode,start_time,qnm_method='interp'):
+        if start_time==self.t0:
+            return phase
+        DT = start_time - self.t0
+        mass1 = mass_ratio/(1+mass_ratio)
+        mass2 = 1/(1+mass_ratio)
+        mf = final_mass(mass1,mass2,chi1z,chi2z,method=1)
+        sf = final_spin(mass1,mass2,chi1z,chi2z,aligned_spins=True,method=1)
+        if hasattr(mode[0],'__len__'):
+            ## handle quadratic mode
+            freq = 0.
+            for linear_mode in mode:
+                freq += qnm_Kerr(mf,sf,linear_mode,qnm_method=qnm_method)[0]
+        else:
+            ## handle linear mode
+            freq = 1./qnm_Kerr(mf,sf,mode,qnm_method=qnm_method)[0]
+        if lm!=(2,2) or mode!=(2,2,0):
+            freq -= 0.5*lm[1]*qnm_Kerr(mf,sf,(2,2,0),qnm_method=qnm_method)[0]
+        out = phase + 2*np.pi*freq*DT
+        return out
+
+
+
+
 class CustomGPR(RegressorMixin,BaseEstimator):
     
     def __init__(self):
@@ -23,14 +356,14 @@ class CustomGPR(RegressorMixin,BaseEstimator):
         y: array_like of shape (n_samples,) or (n_samples, n_targets)
             Target values.
 
-        sample_weight: array_like of shape (n_samples), optional. Default: None.
+        sample_weight: array_like of shape (n_samples). Default=None.
             Individual weights for each sample.
             None (default) is equivalent to 1-D sample_weight filled with ones.
             If not None:
                 (a) the training data for the linear fit are weighted by sample_weights, and
                 (b) the inverse of sample_weights is added to the diagonal of the kernel matrix during GPR fitting.
 
-        normalize_y: bool, optional. Default: True.
+        normalize_y: bool. Default=True.
             Whether or not to normalize the target values y by removing the mean and scaling to unit-variance.
             If True (default), it only applies to the GPR fit.
          """
@@ -52,7 +385,7 @@ class CustomGPR(RegressorMixin,BaseEstimator):
         X: array_like of shape (n_samples, n_features)
             The query points.
 
-        return_std: bool, optional. Default: False.
+        return_std: bool. Default=False.
             Whether or not to return the standard deviation of the predictive distribution at the query points X.
 
         Returns
@@ -85,7 +418,7 @@ class CustomGPR(RegressorMixin,BaseEstimator):
         y_true: array_like of shape (n_samples,) or (n_samples, n_targets)
             Correct target values.
 
-        sample_weight: array_like of shape (n_samples,). Default: None.
+        sample_weight: array_like of shape (n_samples,). Default= None.
             Individual weights for each sample.
             None (default) is equivalent to 1-D sample_weight filled with ones.
             """
@@ -107,7 +440,7 @@ class CustomGPR(RegressorMixin,BaseEstimator):
         y_true: array_like of shape (n_samples,) or (n_samples, n_targets)
             Correct target values.
 
-        sample_weight: array_like of shape (n_samples,). Default: None.
+        sample_weight: array_like of shape (n_samples,). Default=None.
             Individual weights for each sample.
             None (default) is equivalent to 1-D sample_weight filled with ones.
         """
@@ -130,7 +463,7 @@ class CustomGPR(RegressorMixin,BaseEstimator):
         y_true: array_like of shape (n_samples,) or (n_samples, n_targets)
             Correct target values.
 
-        sample_weight: array_like of shape (n_samples,), optional. Default: None.
+        sample_weight: array_like of shape (n_samples,). Default=None.
             Individual weights for each sample.
             None (default) is equivalent to 1-D sample_weight filled with ones.
         """
@@ -148,7 +481,7 @@ class CustomGPR(RegressorMixin,BaseEstimator):
         X: array_like of shape (n_samples_X, n_features)
             The query points.
     
-        n_samples: int, optional. Default: 1.
+        n_samples: int. Default=1.
             Number of samples to be drawn per query point.
 
         Returns
