@@ -25,24 +25,24 @@ class AmplitudeFit3dq8():
 
         Parameters
         ----------
-        mass_ratio: array_like of shape (n_samples,) or float
+        mass_ratio : array_like of shape (n_samples,) or float
             Mass ratio of the query points.
 
-        chi1z: array_like of shape (n_samples,) or float
+        chi1z : array_like of shape (n_samples,) or float
             Projection along the z axis of the primary spin.
 
-        chi2z: array_like of shape (n_samples,) or float
+        chi2z : array_like of shape (n_samples,) or float
             Projection along the z axis of the secondary spin.
 
-        lm: tuple_like object
+        lm : tuple_like object
             Ordered couple (l,m) specifying the angular number l and azimuthal number m of the harmonic.
 
-        mode: tuple_like object
+        mode : tuple_like object
             Ordered tuple specifying the queried quasi-normal mode.
             For linear modes, ordered triple (l,m,n).
             For quadratic modes, ordered couple of the form ((l1,m1,n1),(l2,m2,n2)).
 
-        return_std: bool. Default=False.
+        return_std : bool. Default=False.
             Whether or not to return the standard deviation of the predictive distribution at the query points.
         """
         X = self._transform_X(mass_ratio,chi1z,chi2z)
@@ -74,27 +74,27 @@ class AmplitudeFit3dq8():
 
         Parameters
         ----------
-        mass_ratio: array_like of shape (n_samples,) or float
+        mass_ratio : array_like of shape (n_samples,) or float
             Mass ratio of the query points.
 
-        chi1z: array_like of shape (n_samples,) or float
+        chi1z : array_like of shape (n_samples,) or float
             Projection along the z axis of the primary spin.
 
-        chi2z: array_like of shape (n_samples,) or float
+        chi2z : array_like of shape (n_samples,) or float
             Projection along the z axis of the secondary spin.
 
-        lm: tuple_like object
+        lm : tuple_like object
             Ordered couple (l,m) specifying the angular number l and azimuthal number m of the harmonic.
 
-        mode: tuple_like object
+        mode : tuple_like object
             Ordered tuple specifying the queried quasi-normal mode.
             For linear modes, ordered triple (l,m,n).
             For quadratic modes, ordered couple of the form ((l1,m1,n1),(l2,m2,n2)).
 
-        return_std: bool. Default=False.
+        return_std : bool. Default=False.
             Whether or not to return the standard deviation of the predictive distribution at the query points.
 
-        start_time: float or None. Default=None.
+        start_time : float or None. Default=None.
             Start time of the ringdown waveform, relative to the peak of |h_{22}|.
             If None (default), assume that start_time=self.t0.
         """
@@ -120,27 +120,27 @@ class AmplitudeFit3dq8():
 
         Parameters
         ----------
-        mass_ratio: array_like of shape (n_samples,) or float
+        mass_ratio : array_like of shape (n_samples,) or float
             Mass ratio of the query points.
 
-        chi1z: array_like of shape (n_samples,) or float
+        chi1z : array_like of shape (n_samples,) or float
             Projection along the z axis of the primary spin.
 
-        chi2z: array_like of shape (n_samples,) or float
+        chi2z : array_like of shape (n_samples,) or float
             Projection along the z axis of the secondary spin.
 
-        lm: tuple_like object
+        lm : tuple_like object
             Ordered couple (l,m) specifying the angular number l and azimuthal number m of the harmonic.
 
-        mode: tuple_like object
+        mode : tuple_like object
             Ordered tuple specifying the queried quasi-normal mode.
             For linear modes, ordered triple (l,m,n).
             For quadratic modes, ordered couple of the form ((l1,m1,n1),(l2,m2,n2)).
 
-        return_std: bool. Default=False.
+        return_std : bool. Default=False.
             Whether or not to return the standard deviation of the predictive distribution at the query points.
 
-        start_time: float or None. Default=None.
+        start_time : float or None. Default=None.
             Start time of the ringdown waveform, relative to the peak of |h_{22}|.
             If None (default), assume that start_time=self.t0.
         """
@@ -166,30 +166,30 @@ class AmplitudeFit3dq8():
 
         Parameters
         ----------
-        mass_ratio: array_like of shape (n_samples_X,) or float
+        mass_ratio : array_like of shape (n_samples_X,) or float
             Mass ratio of the query points.
 
-        chi1z: array_like of shape (n_samples_X,) or float
+        chi1z : array_like of shape (n_samples_X,) or float
             Projection along the z axis of the primary spin.
 
-        chi2z: array_like of shape (n_samples_X,) or float
+        chi2z : array_like of shape (n_samples_X,) or float
             Projection along the z axis of the secondary spin.
 
-        lm: tuple-like object
+        lm : tuple-like object
             Ordered couple (l,m) specifying the angular number l and azimuthal number m of the harmonic.
 
-        mode: tuple-like object
+        mode : tuple-like object
             Ordered tuple specifying the queried quasi-normal mode.
             For linear modes, ordered triple (l,m,n).
             For quadratic modes, ordered couple of the form ((l1,m1,n1),(l2,m2,n2)).
 
-        n_samples: int. Default=1.
+        n_samples : int. Default=1.
             Number of samples to be drawn per query point.
 
         Returns
         -------
-        amp_x: array-like of shape (n_samples_X, n_samples)
-        amp_y: array-like of shape (n_samples_X, n_samples)
+        amp_x : array-like of shape (n_samples_X, n_samples)
+        amp_y : array-like of shape (n_samples_X, n_samples)
         """
         X = self._transform_X(mass_ratio,chi1z,chi2z)
         if lm==(2,2) and mode==(2,2,0):
@@ -206,34 +206,33 @@ class AmplitudeFit3dq8():
 
         Parameters
         ----------
-        mass_ratio: array_like of shape (n_samples_X,) or float
+        mass_ratio : array_like of shape (n_samples_X,) or float
             Mass ratio of the query points.
 
-        chi1z: array_like of shape (n_samples_X,) or float
+        chi1z : array_like of shape (n_samples_X,) or float
             Projection along the z axis of the primary spin.
 
-        chi2z: array_like of shape (n_samples_X,) or float
+        chi2z : array_like of shape (n_samples_X,) or float
             Projection along the z axis of the secondary spin.
 
-        lm: tuple-like object
+        lm : tuple-like object
             Ordered couple (l,m) specifying the angular number l and azimuthal number m of the harmonic.
 
-        mode: tuple-like object
+        mode : tuple-like object
             Ordered tuple specifying the queried quasi-normal mode.
             For linear modes, ordered triple (l,m,n).
             For quadratic modes, ordered couple of the form ((l1,m1,n1),(l2,m2,n2)).
 
-        n_samples: int. Default=1.
+        n_samples : int. Default=1.
             Number of samples to be drawn per query point.
 
-        start_time: float or None. Default=None.
+        start_time : float or None. Default=None.
             Start time of the ringdown waveform, relative to the peak of |h_{22}|.
             If None (default), assume that start_time=self.t0.
 
         Returns
         -------
-        amp: array-like of shape (n_samples_X, n_samples)
-
+        amp : array-like of shape (n_samples_X, n_samples)
         """
         amp_x, amp_y = self.sample_xy_amp(mass_ratio,chi1z,chi2z,lm,mode,n_samples=n_samples)
         amp = np.sqrt(amp_x**2+amp_y**2)
@@ -248,34 +247,33 @@ class AmplitudeFit3dq8():
 
         Parameters
         ----------
-        mass_ratio: array_like of shape (n_samples,) or float
+        mass_ratio : array_like of shape (n_samples,) or float
             Mass ratio of the query points.
 
-        chi1z: array_like of shape (n_samples,) or float
+        chi1z : array_like of shape (n_samples,) or float
             Projection along the z axis of the primary spin.
 
-        chi2z: array_like of shape (n_samples,) or float
+        chi2z : array_like of shape (n_samples,) or float
             Projection along the z axis of the secondary spin.
 
-        lm: tuple-like object
+        lm : tuple-like object
             Ordered couple (l,m) specifying the angular number l and azimuthal number m of the harmonic.
 
-        mode: tuple-like object
+        mode : tuple-like object
             Ordered tuple specifying the queried quasi-normal mode.
             For linear modes, ordered triple (l,m,n).
             For quadratic modes, ordered couple of the form ((l1,m1,n1),(l2,m2,n2)).
 
-        n_samples: int. Default=1.
+        n_samples : int. Default=1.
             Number of samples to be drawn per query point.
 
-        start_time: float or None. Default=None
+        start_time : float or None. Default=None
             Start time of the ringdown waveform, relative to the peak of |h_{22}|.
             If None (default), assume that start_time=self.t0.
 
         Returns
         -------
-        phase: array-like of shape (n_samples_X, n_samples)
-
+        phase : array-like of shape (n_samples_X, n_samples)
         """
         beta = 1 + np.mod(lm[1],2)
         amp_x, amp_y = self.sample_amp_xy_amp(mass_ratio,chi1z,chi2z,lm,mode,n_samples=n_samples)
@@ -350,20 +348,20 @@ class CustomGPR(RegressorMixin,BaseEstimator):
 
         Parameters
         ----------
-        X: array_like of shape (n_samples, n_features)
+        X : array_like of shape (n_samples, n_features)
             Training data. Prior to fit, they are normalized to zero mean and unit variance.
 
-        y: array_like of shape (n_samples,) or (n_samples, n_targets)
+        y : array_like of shape (n_samples,) or (n_samples, n_targets)
             Target values.
 
-        sample_weight: array_like of shape (n_samples). Default=None.
+        sample_weight : array_like of shape (n_samples). Default=None.
             Individual weights for each sample.
             None (default) is equivalent to 1-D sample_weight filled with ones.
             If not None:
                 (a) the training data for the linear fit are weighted by sample_weights, and
                 (b) the inverse of sample_weights is added to the diagonal of the kernel matrix during GPR fitting.
 
-        normalize_y: bool. Default=True.
+        normalize_y : bool. Default=True.
             Whether or not to normalize the target values y by removing the mean and scaling to unit-variance.
             If True (default), it only applies to the GPR fit.
          """
@@ -382,18 +380,18 @@ class CustomGPR(RegressorMixin,BaseEstimator):
 
         Parameters
         ----------
-        X: array_like of shape (n_samples, n_features)
+        X : array_like of shape (n_samples, n_features)
             The query points.
 
-        return_std: bool. Default=False.
+        return_std : bool. Default=False.
             Whether or not to return the standard deviation of the predictive distribution at the query points X.
 
         Returns
         -------
-        y_mean: array_like of shape (n_samples,) or (n_samples, n_targets)
+        y_mean : array_like of shape (n_samples,) or (n_samples, n_targets)
             Mean of the predictive distribution at the query points X.
 
-        y_std: array_like of shape (n_samples,) or (n_samples, n_targets), optional
+        y_std : array_like of shape (n_samples,) or (n_samples, n_targets), optional
             Standard deviation of the predictive distribution at the query points X.
             Only returned when return_std=True.
         """
@@ -412,13 +410,13 @@ class CustomGPR(RegressorMixin,BaseEstimator):
 
         Prameters
         ---------
-        X: array_like of shape (n_samples, n_features)
+        X : array_like of shape (n_samples, n_features)
             The query points.
 
-        y_true: array_like of shape (n_samples,) or (n_samples, n_targets)
+        y_true : array_like of shape (n_samples,) or (n_samples, n_targets)
             Correct target values.
 
-        sample_weight: array_like of shape (n_samples,). Default=None.
+        sample_weight : array_like of shape (n_samples,). Default=None.
             Individual weights for each sample.
             None (default) is equivalent to 1-D sample_weight filled with ones.
             """
@@ -434,13 +432,13 @@ class CustomGPR(RegressorMixin,BaseEstimator):
 
         Parameters
         ----------
-        X: array_like of shape (n_samples, n_features)
+        X : array_like of shape (n_samples, n_features)
             The query points.
 
-        y_true: array_like of shape (n_samples,) or (n_samples, n_targets)
+        y_true : array_like of shape (n_samples,) or (n_samples, n_targets)
             Correct target values.
 
-        sample_weight: array_like of shape (n_samples,). Default=None.
+        sample_weight : array_like of shape (n_samples,). Default=None.
             Individual weights for each sample.
             None (default) is equivalent to 1-D sample_weight filled with ones.
         """
@@ -457,13 +455,13 @@ class CustomGPR(RegressorMixin,BaseEstimator):
 
         Parameters
         ----------
-        X: array_like of shape (n_samples, n_features)
+        X : array_like of shape (n_samples, n_features)
             The query points.
 
-        y_true: array_like of shape (n_samples,) or (n_samples, n_targets)
+        y_true : array_like of shape (n_samples,) or (n_samples, n_targets)
             Correct target values.
 
-        sample_weight: array_like of shape (n_samples,). Default=None.
+        sample_weight : array_like of shape (n_samples,). Default=None.
             Individual weights for each sample.
             None (default) is equivalent to 1-D sample_weight filled with ones.
         """
@@ -478,15 +476,15 @@ class CustomGPR(RegressorMixin,BaseEstimator):
 
         Parameters
         ----------
-        X: array_like of shape (n_samples_X, n_features)
+        X : array_like of shape (n_samples_X, n_features)
             The query points.
     
-        n_samples: int. Default=1.
+        n_samples : int. Default=1.
             Number of samples to be drawn per query point.
 
         Returns
         -------
-        y_samples: array-like of shape (n_samples_X, n_samples) or (n_samples_X, n_targets, n_samples)
+        y_samples : array-like of shape (n_samples_X, n_samples) or (n_samples_X, n_targets, n_samples)
         """
         X_transformed = self.gpr['scaler'].transform(X)
         out = self.gpr['gpr'].sample_y(X_transformed,n_samples=n_samples,random_state=random_state)
