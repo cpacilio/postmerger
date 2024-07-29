@@ -1,2 +1,2 @@
 from .utils import *
-from .fits import * 
+from .fits import *

@@ -9,6 +9,30 @@ from sklearn.base import BaseEstimator, RegressorMixin
 import numpy as np
 from . import qnm_Kerr, final_mass, final_spin
 
+import os 
+dir_path = os.path.dirname(os.path.realpath(__file__))
+
+
+allowed_models = ['3dq8_20M']
+
+
+def load_fit(name):
+    """
+    Load surrogate model.
+
+    Parameters
+    ----------
+    name : str
+        Name of the model. Bust be one of allowed_models.
+    """
+    if name not in allowed_models:
+        raise ValueError('name must be one of '+str(allowed_models))
+    fit_dict = np.load(dir_path+'/../data/gpr_models/%s_gpr.npy'%name,allow_pickle='TRUE').item()
+    if '3dq8' in name:
+        model = AmplitudeFit3dq8(fit_dict)
+    return model
+
+
 class AmplitudeFit3dq8():
 
     def __init__(self,fit_dict):
@@ -76,7 +100,7 @@ class AmplitudeFit3dq8():
         ----------
         mass_ratio : array_like of shape (n_samples,) or float
             Mass ratio of the query points.
-
+            
         chi1z : array_like of shape (n_samples,) or float
             Projection along the z axis of the primary spin.
 

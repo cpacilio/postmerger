@@ -169,23 +169,31 @@ def final_mass(mass1,mass2,spin1,spin2,alpha=0.,beta=0.,gamma=0.,aligned_spins=F
     ----------
     mass1 : float or array_like
         Mass of the primary component (in solar masses).
+    
     mass2 : float or array_like
         Mass of the secondary component (in solar masses).
+    
     spin1 : float or array_like 
         Magnitude of the dimensionless spin of the primary component.
+    
     spin2 : float or array_like
         Magnitude of the dimensionless spin of the secondary component.
+    
     alpha : float or array_like. Default=0.
         Angle between the progenitor spins.
         This parameter is never used and it is made available ony for consistency with the arguments of the final_spin function.
+    
     beta : float or array_like. Default=0.
         Angle between spin1 and the z direction.
+    
     gamma : float or array-like. Default=0.
         Angle between spin2 and the z direction.
+    
     method : str. Default='B12'.
         Method to use to compute the final spin. Allowed methods: ['B12','phenom'].
         If 'B12', it uses the fit in https://arxiv.org/abs/1206.3803 .
         If 'phenom', it uses the fit in https://arxiv.org/abs/1508.07250 .
+    
     aligned_spins : bool. Default=False.
         Whethter to assume aligned spins. If True, spin1 and spin2 can also be negative.
         Enabling this option overwrites the parameters alpha, beta ang gamma, setting them to zero.
@@ -255,26 +263,35 @@ def final_spin(mass1,mass2,spin1,spin2,alpha=0.,beta=0.,gamma=0.,method='H16',al
     ----------
     mass1 : float or array_like
         Mass of the primary component (in solar masses).
+    
     mass2 : float or array_like:
         Mass of the secondary component (in solar masses).
+    
     spin1 : float or array_like
         Magnitude of the dimensionless spin of the primary component.
+    
     spin2 : float or array_like
         Magnitude of the dimensionless spin of the secondary component.
+    
     alpha : float or array_like. Default=0.
         Angle between the progenitor spins.
         This parameter is never used and it is made available only for consistency with the arguments of the final_spin function.
+    
     beta : float or array_like. Default=0.
         Angle between spin1 and the z direction.
+    
     gamma : float or array-like. Default=0.
         Angle between spin2 and the z direction.
+    
     method : str. Default='H16'.
         Method to use to compute the final spin. Allowed options: ['H16','phenom'].
         If 'H16', it uses the fit in https://arxiv.org/abs/1605.01938 .
         If 'phenom', it uses the fit in https://arxiv.org/abs/1508.07250 .
+    
     aligned_spins : bool. Default=False.
         Whethter to assume aligned spins. If True, spin1 and spin2 can also be negative.
         Enabling this option overwrites the parameters alpha, beta ang gamma, setting them to zero.
+    
     return_angle : bool. Default=False.
         Whether to return the angle between the final spin and the orbital plane.
         
@@ -363,18 +380,23 @@ def qnm_Kerr(mass,spin,mode,prograde=1,qnm_method='L18',SI_units=False):
     ----------
     mass : float or array-like
         Mass of the Kerr black hole.
+    
     spin : float or array-like
         Dimensionless spin of the kerr black hole.
+    
     mode : tuple
         A tuple (l,m,n) with the indices labeling the mode.
+    
     prograde : int. Default=1.
         Allowed options: [-1,1]. If 1, return prograde modes. If -1, return retrograde modes.
+    
     qnm_method : str. Default='interp'.
         The method used to approximate the Kerr spectrum. Allowed options: ['interp','L18'].
         If 'interp', it interpolates linearly from the numerical tables provided at https://pages.jh.edu/eberti2/ringdown/ .
             They are only defined for spin in [-0.998,0.998] and any use outside this range is not guaranteed to produce sensible results.
             Note that we only support 2<=l<=5, but original tables are also available for l=6 and 7.
         If 'L18', it uses the fits in https://arxiv.org/abs/1810.03550 . They are defined for spin in the whole physical range [-1,1].
+    
     SI_units : bool. Default=False.
         If True, returns frenquency in units of Hz and damping time in units of s.
         If False, returns frequency and damping time in dimensionless units, rescaling them by tsun=G*M_SUM/c**3.
@@ -488,22 +510,28 @@ def spherical_spheroidal_mixing(lm,mode,spin,method='BK14',prograde=1,qnm_method
     ----------
     lm : tuple
         Indices (lt,m) of the spherical harmonic.
+    
     mode : tuple
         Indices (l,m,n) of the spheroidal harmonic.
+    
     spin : float or array_like
         Dimensionless spin of the Kerr black hole.
+    
     method : str. Default='BK14'.
         The method used to compute mixing coefficients. Allowed options: ['BK14','PT73'].
         If 'BK14', it uses the fitting coefficients presented in https://arxiv.org/abs/1408.1860 and provided at https://pages.jh.edu/eberti2/ringdown/ .
         If 'PT73', it uses the leading order expressions in perturbation theory, see Press & Teukolsky 1973, ` Perturbations of a rotating black hole. II. Dynamical stability of the Kerr metric`.
+    
     prograde : int. Default=1.
         Allowed options: [-1,1]. If 1, return mixing coefficients for modes. If -1, return mixing coefficients for retrograde modes.
+    
     qnm_method : str. Default='interp'.
         The method used to approximate the Kerr spectrum. Allowed options: ['interp','L18'].
         If 'interp', it interpolates linearly from the numerical tables provided at https://pages.jh.edu/eberti2/ringdown/ .
             They are only defined for spin in [-0.998,0.998] and any use outside this range is not guaranteed to produce sensible results.
             Note that we only support 2<=l<=5, but original tables are also available for l=6 and 7.
         If 'L18', it uses the fits in https://arxiv.org/abs/1810.03550 . They are defined for spin in the whole physical range [-1,1].
+    
     enforce_sxs_convention : bool. Default=True.
         If True, applies a sign correction to match the conventions of SXS. See footnote 4 of https://arxiv.org/abs/1902.02731 .
 
