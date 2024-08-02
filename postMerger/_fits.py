@@ -24,10 +24,10 @@ def load_fit(name):
     Parameters
     ----------
     name : str
-        Name of the model. Bust be one of allowed_models.
+        Name of the model. Bust be one of allowed_fits.
     """
-    if name not in allowed_models:
-        raise ValueError('name must be one of '+str(allowed_models))
+    if name not in allowed_fits:
+        raise ValueError('name must be one of '+str(allowed_fits))
     fit_dict = joblib.load(dir_path+'/../data/trained_models/%s_gpr.pkl'%name)
     if '3dq8' in name:
         model = AmplitudeFit3dq8(fit_dict)
