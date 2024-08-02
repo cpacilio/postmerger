@@ -4,3 +4,24 @@
 ## Available models
 
 - `3dq8_20M`: Ringdown amplitudes from a non-precessing, quasi-circular, binary black-hole merger. Calibrated at $20M$ after the peak of $|h_{22}|$.
+
+## Usage
+
+```python
+import postMerger
+```
+
+### List of available fits
+
+```python
+postMerger.allowed_fits
+>>> ['3dq8_20M']
+```
+
+### Load fit
+
+```python
+fitname = '3dq8_20M'
+fit = = postMerger.load_fit(fitname)
+```
+

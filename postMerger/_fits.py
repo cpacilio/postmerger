@@ -14,7 +14,7 @@ import os
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
 
-allowed_models = ['3dq8_20M']
+allowed_fits = ['3dq8_20M']
 
 
 def load_fit(name):
