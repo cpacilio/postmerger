@@ -1,5 +1,5 @@
 # postMerger
-`postMerger` provides surrogate fits for binary black hole remnants.
+**postMerger** provides surrogate fits for binary black-hole remnants.
 
 ## Available models
 
