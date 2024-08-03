@@ -374,10 +374,9 @@ def final_spin(mass1,mass2,spin1,spin2,alpha=0.,beta=0.,gamma=0.,method='H16',al
     else:
         return np.clip(a_fin,-1.,1.)
 
-def qnm_Kerr(mass,spin,mode,prograde=1,qnm_method='L18',SI_units=False):
+def qnm_Kerr(mass,spin,mode,prograde=1,qnm_method='interp',SI_units=False):
     """
     Returns the frequency and the damping time of a Kerr black hole.
-    Conventions follow XXX.
 
     Parameters
     ----------
@@ -385,20 +384,21 @@ def qnm_Kerr(mass,spin,mode,prograde=1,qnm_method='L18',SI_units=False):
         Mass of the Kerr black hole.
     
     spin : float or array-like
-        Dimensionless spin of the kerr black hole.
+        Dimensionless spin of the Kerr black hole.
     
     mode : tuple
         A tuple (l,m,n) with the indices labeling the mode.
     
     prograde : int. Default=1.
-        Allowed options: [-1,1]. If 1, return prograde modes. If -1, return retrograde modes.
+        Allowed options: [-1,1]. If 1, returns prograde modes. If -1, returns retrograde modes. 
+        The conventions for prograde-vs-retrograde follow https://arxiv.org/abs/2310.04489 .
     
     qnm_method : str. Default='interp'.
         The method used to approximate the Kerr spectrum. Allowed options: ['interp','L18'].
-        If 'interp', it interpolates linearly from the numerical tables provided at https://pages.jh.edu/eberti2/ringdown/ .
-            They are only defined for spin in [-0.998,0.998] and any use outside this range is not guaranteed to produce sensible results.
-            Note that we only support 2<=l<=5, but original tables are also available for l=6 and 7.
-        If 'L18', it uses the fits in https://arxiv.org/abs/1810.03550 . They are defined for spin in the whole physical range [-1,1].
+        
+        If 'interp', interpolates linearly the numerical data from https://arxiv.org/abs/gr-qc/0512160 , using tables provided at https://pages.jh.edu/eberti2/ringdown/ . They are only defined for spin in [-0.998,0.998] and any use outside this range is not guaranteed to produce sensible results. Note that we only support 2<=l<=5, but original tables are also available for l=6 and 7.
+        
+        If 'L18', uses the fits in https://arxiv.org/abs/1810.03550 . They are defined for spin in the whole physical range [-1,1].
     
     SI_units : bool. Default=False.
         If True, returns frenquency in units of Hz and damping time in units of s.
