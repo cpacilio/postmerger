@@ -25,7 +25,7 @@ fitname = '3dq8_20M'
 fit = = postMerger.load_fit(fitname)
 ```
 
-## Evaluate QNMs
+### Evaluate QNMs
 
 We provide a QNM evaluator. See the corresponding [example notebook](examples/qnm_Kerr.ipynb) for advanced usage.
 
