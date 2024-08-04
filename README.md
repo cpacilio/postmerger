@@ -3,9 +3,9 @@
 
 ## Available models
 
-- `3dq8_20M`: Ringdown amplitudes from a non-precessing, quasi-circular, binary black-hole merger. Calibrated at $20M$ after the peak of $|h_{22}|$.
+- `3dq8_20M`: Ringdown amplitudes from non-precessing, quasi-circular black-hole binaries. Calibrated at 20M after the peak of the 22 strain.
 
-## Usage
+## Basic usage
 
 ```python
 import postMerger
@@ -27,7 +27,9 @@ fit = = postMerger.load_fit(fitname)
 
 ### Evaluate QNMs
 
-We provide a QNM evaluator. See the corresponding [example notebook](examples/qnm_Kerr.ipynb) for advanced usage.
+We provide a QNM evaluator. 
+
+See the notebook [qnm_Kerr](examples/qnm_Kerr.ipynb) for advanced usage.
 
 ```python
 ## mass and spin
@@ -45,5 +47,45 @@ print('frequency (Hz): ',f)
 print('damping time (s): ',tau)
 >>> frequency (Hz):  250.71404280475124
 >>> damping time (s):  0.004032098030215414
+```
+
+### Compute final mass and final spins
+
+We provide functions to compute final mass and final spin from binary parameters. 
+
+See the notebook [final_mass_spin](examples/final_mass_spin.ipynb) for further details.
+
+```python
+## (we set a binary with anti-aligned spins ending into a black-hole with final spin pointing downward)
+
+## initial masses (mass1>=mass2 is required)
+mass1 = 25
+mass2 = 5
+
+## initial spins (magnitudes)
+spin1 = 0.9
+spin2 = 0.1
+
+## angle between spins and z-direction
+## [0,pi/2] is positive-z direction
+## [pi/2,pi] is negative-z direction
+beta = np.pi
+gamma = 0.
+
+## relative orientation between spin1 and spin2
+## here, since the spins are (anti-)aligned, alpha is forced to be arccos(cos(beta)*cos(gamma))
+alpha = np.arccos(np.cos(beta)*np.cos(gamma))
+
+## compute final mass and final spin
+massf = pM.final_mass(mass1,mass2,spin1,spin2,beta=beta,gamma=gamma,alpha=alpha)
+spinf, thetaf = pM.final_spin(mass1,mass2,spin1,spin2,beta=beta,gamma=gamma,alpha=alpha,return_angle=True)
+
+## results
+print('final mass: ',massf)
+print('final spin: ',spinf)
+print('final orientation: ',np.cos(thetaf))
+>>> final mass:  29.62197225289648
+>>> final spin:  0.12753062487767092
+>>> final orientation:  -1.0
 ```
 

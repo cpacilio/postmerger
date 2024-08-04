@@ -4,6 +4,7 @@ import os
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
 import numpy as np
+from copy import deepcopy
 
 ## fundamental constants from astropy
 ## gravitational constant
@@ -165,16 +166,16 @@ def L_isco(spin):
 
 def final_mass(mass1,mass2,spin1,spin2,alpha=0.,beta=0.,gamma=0.,aligned_spins=False,method='B12'):
     """
-    Returns the final mass (in solar masses) of the Kerr black hole remnant from a quasi-circular binary black hole merger.
+    Returns the final mass of the Kerr black hole remnant from a quasi-circular binary black hole merger.
     All available methods are calibrated on numerical simulations of binaries with aligned spins.
 
     Parameters
     ----------
     mass1 : float or array_like
-        Mass of the primary component (in solar masses).
+        Mass of the primary component.
     
     mass2 : float or array_like
-        Mass of the secondary component (in solar masses).
+        Mass of the secondary component.
     
     spin1 : float or array_like 
         Magnitude of the dimensionless spin of the primary component.
@@ -243,7 +244,7 @@ def final_mass(mass1,mass2,spin1,spin2,alpha=0.,beta=0.,gamma=0.,aligned_spins=F
         m_rad = E_rad*m_tot
         m_fin = m_tot-m_rad
 
-    elif method=='H15':
+    elif method=='phenom':
         ## use https://arxiv.org/abs/1508.07250
         a_tot = (spin1*np.cos(beta)*mass1**2+spin2*np.cos(gamma)*mass2**2)/(mass1+mass2)**2/(1-2*eta)
         E_rad = 0.0559745*eta+0.580951*eta**2-0.960673*eta**3+3.35241*eta**4
@@ -257,18 +258,18 @@ def final_mass(mass1,mass2,spin1,spin2,alpha=0.,beta=0.,gamma=0.,aligned_spins=F
 
 def final_spin(mass1,mass2,spin1,spin2,alpha=0.,beta=0.,gamma=0.,method='H16',aligned_spins=False,return_angle=False):
     """
-    Returns the magnitude of the dimensionless final spin of the Kerr black hole remnant from a quasi-circular binary black hole merger.
-    Optionally, returns the angle between the final spin and the orbital plane.
-    Note that avaiable methods are calibrated on numerical simulations of binaries with aligned spins.
+    Returns the magnitude of the dimensionless final spin of the Kerr black hole remnant from a quasi-circular binary black hole merger. Optionally, returns the angle between the final spin and the orbital plane.
+    All avaiable methods are calibrated on numerical simulations of binaries with aligned spins.
+    
     The effects of precession are treated effectively: they are included by summing in quadrature the trasverse components of the initial spins to the fitted expression for the parallel component of the final spin, and assuming that the evolution of the transverse components of the spins has a negligible effect on the final expression. See https://dcc.ligo.org/T1600168/public for further details.
 
     Parameters
     ----------
     mass1 : float or array_like
-        Mass of the primary component (in solar masses).
+        Mass of the primary component.
     
     mass2 : float or array_like:
-        Mass of the secondary component (in solar masses).
+        Mass of the secondary component.
     
     spin1 : float or array_like
         Magnitude of the dimensionless spin of the primary component.
@@ -303,7 +304,7 @@ def final_spin(mass1,mass2,spin1,spin2,alpha=0.,beta=0.,gamma=0.,method='H16',al
         final spin: float or array_like
         angle : float or array_like (optional)
     """
-    allowed_methods = ['B12','phenom']
+    allowed_methods = ['H16','phenom']
     if method not in allowed_methods:
         raise ValueError("method must be one of "+str(allowed_methods))
 
@@ -328,7 +329,6 @@ def final_spin(mass1,mass2,spin1,spin2,alpha=0.,beta=0.,gamma=0.,method='H16',al
             raise ValueError("spin2 must be non-negatve. If you want spin2 to point in the negative direction, set gamma!=0 or aligned_spins=True.")
     elif aligned_spins:
         alpha, beta, gamma = 0., 0., 0.
-
 
     q = mass2/mass1 ## phenom fits use a different def of mass ratio than this code
     eta = q/(1+q)**2
