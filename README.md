@@ -1,9 +1,25 @@
 # postMerger
 **postMerger** provides surrogate fits for binary black-hole remnants.
 
-## Available models
+### Available models
 
 - `3dq8_20M`: Ringdown amplitudes from non-precessing, quasi-circular black-hole binaries. Calibrated at $20M$ after the peak of the $(2,2)$ strain. See the example notebook [3dq8_20M](examples/3dq8_20M.ipynb) for usage details.
+
+## Installation
+
+### From source
+
+```
+git clone git@github.com:cpacilio/postMerger.git
+cd postMerger
+pip install .
+```
+
+### From PyPI
+
+```
+pip install postMerger
+```
 
 ## Basic usage
 
