@@ -22,7 +22,7 @@ postMerger.allowed_fits
 
 ```python
 fitname = '3dq8_20M'
-fit = = postMerger.load_fit(fitname)
+fit = postMerger.load_fit(fitname)
 ```
 
 ### Evaluate QNMs
@@ -45,8 +45,33 @@ f, tau = postMerger.qnm_Kerr(mass,spin,mode,SI_units=True)
 ## results
 print('frequency (Hz): ',f)
 print('damping time (s): ',tau)
->>> frequency (Hz):  250.71404280475124
->>> damping time (s):  0.004032098030215414
+>>> frequency (Hz): 250.71404280475124
+>>> damping time (s): 0.004032098030215414
+```
+
+### Evaluate spherical-spheroidal mixing coefficients
+
+We provide a mixing-coefficient evaluator.
+
+See the notebook [spherical_spheroidal_mixing](examples/spherical_spheroidal_mixing.ipynb) for further details.
+
+```python
+## evaluate mu_{2320}
+
+## spherical-harmonic indices
+lm = (3,2)
+
+## spheroidal-harmonic indices
+mode = (2,2,0)
+
+## final spin
+spin = 0.68
+
+mu_re, mu_im = postMerger.spherical_spheroidal_mixing(lm,mode,spin)
+
+## results
+print('mu_{2320} =',mu_re+1j*mu_im)
+>>> mu_{2320} = (0.0665939069543019+0.011046238081249502j)
 ```
 
 ### Compute final mass and final spin
@@ -84,8 +109,8 @@ spinf, thetaf = postMerger.final_spin(mass1,mass2,spin1,spin2,,alpha,beta,gamma,
 print('final mass: ',massf)
 print('final spin: ',spinf)
 print('final orientation: ',np.cos(thetaf))
->>> final mass:  29.62197225289648
->>> final spin:  0.12753062487767092
->>> final orientation:  -1.0
+>>> final mass: 29.62197225289648
+>>> final spin: 0.12753062487767092
+>>> final orientation: -1.0
 ```
 

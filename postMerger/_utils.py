@@ -506,10 +506,10 @@ def qnm_Kerr(mass,spin,mode,prograde=1,qnm_method='interp',SI_units=False):
 
 
 def spherical_spheroidal_mixing(lm,mode,spin,method='BK14',prograde=1,qnm_method='interp',\
-                               enforce_sxs_convention=True,s=-2,fitting_coeffs={}):
+                               enforce_sxs_convention=True,s=-2,_fitting_coeffs={}):
     """
     Returns spherical-spheroidal mixing coefficients mu_{m,l,lt,n} as defined by Eq. (5) in https://arxiv.org/abs/1408.1860 .
-    Note that they are the complex conjugate of the mixing coefficients C_{lt,l,m,n} defined in https://arxiv.org/abs/1908.10377 .
+    Note that they are the complex conjugates of the mixing coefficients C_{lt,l,m,n} defined in https://arxiv.org/abs/1908.10377 .
 
     Parameters
     ----------
@@ -524,17 +524,19 @@ def spherical_spheroidal_mixing(lm,mode,spin,method='BK14',prograde=1,qnm_method
     
     method : str. Default='BK14'.
         The method used to compute mixing coefficients. Allowed options: ['BK14','PT73'].
+        
         If 'BK14', it uses the fitting coefficients presented in https://arxiv.org/abs/1408.1860 and provided at https://pages.jh.edu/eberti2/ringdown/ .
+        
         If 'PT73', it uses the leading order expressions in perturbation theory, see Press & Teukolsky 1973, ` Perturbations of a rotating black hole. II. Dynamical stability of the Kerr metric`.
     
     prograde : int. Default=1.
-        Allowed options: [-1,1]. If 1, return mixing coefficients for modes. If -1, return mixing coefficients for retrograde modes.
+        Allowed options: [-1,1]. If 1, return mixing coefficients for prograde modes. If -1, return mixing coefficients for retrograde modes.
     
     qnm_method : str. Default='interp'.
         The method used to approximate the Kerr spectrum. Allowed options: ['interp','L18'].
-        If 'interp', it interpolates linearly from the numerical tables provided at https://pages.jh.edu/eberti2/ringdown/ .
-            They are only defined for spin in [-0.998,0.998] and any use outside this range is not guaranteed to produce sensible results.
-            Note that we only support 2<=l<=5, but original tables are also available for l=6 and 7.
+        
+        If 'interp', it interpolates linearly from the numerical tables provided at https://pages.jh.edu/eberti2/ringdown/ . They are only defined for spin in [-0.998,0.998] and any use outside this range is not guaranteed to produce sensible results. Note that we only support 2<=l<=5, but original tables are also available for l=6 and 7.
+        
         If 'L18', it uses the fits in https://arxiv.org/abs/1810.03550 . They are defined for spin in the whole physical range [-1,1].
     
     enforce_sxs_convention : bool. Default=True.
@@ -547,7 +549,7 @@ def spherical_spheroidal_mixing(lm,mode,spin,method='BK14',prograde=1,qnm_method
         mu_im : float or array_like
             Imaginary part of the mixing coefficients.
     """
-    allowed_methods = ['BK14','PT74']
+    allowed_methods = ['BK14','PT73']
     if method not in allowed_methods:
         raise ValueError("method must be one of "+str(allowed_methods))
     
@@ -557,7 +559,7 @@ def spherical_spheroidal_mixing(lm,mode,spin,method='BK14',prograde=1,qnm_method
     lt,m = lm
     l,_,n = mode
 
-    if method=='PT74':
+    if method=='PT73':
         ## use clebsch gordan coeff
         if lt==l:
             return 1, 0
@@ -577,17 +579,16 @@ def spherical_spheroidal_mixing(lm,mode,spin,method='BK14',prograde=1,qnm_method
         mu_im = -np.imag(out)
     #####
     elif method=='BK14':
-        print(spin)
         ## use Berti & Klein fits
         ## use the fits at https://arxiv.org/abs/1408.1860
         ## available at https://pages.jh.edu/eberti2/ringdown/
-        if fitting_coeffs=={}:
+        if _fitting_coeffs=={}:
             filename = dir_path+'/../data/berti_klein_mixing/swsh_fits.dat'
             x = np.loadtxt(filename,dtype='object')
             for xi in x:
                 mlln = tuple(xi[:4].astype(int))
-                fitting_coeffs[mlln] = [float(c) for c in xi[4:12]]
-        allowed_keys = list(fitting_coeffs.keys())
+                _fitting_coeffs[mlln] = [float(c) for c in xi[4:12]]
+        allowed_keys = list(_fitting_coeffs.keys())
         mlln = (m,lt,l,n)
         fre, fim = 1., 1.
         sign_p = prograde
@@ -611,7 +612,7 @@ def spherical_spheroidal_mixing(lm,mode,spin,method='BK14',prograde=1,qnm_method
             fim *= (-1)**(l+lt+1)
         if mlln not in allowed_keys:
             raise KeyError('(%s,%s,%s,%s) mode is not allowed by this method. Allowed modes are: '%mlln+str(allowed_keys))
-        p1_re, p2_re, p3_re, p4_re, p1_im, p2_im, p3_im, p4_im = fitting_coeffs[mlln]
+        p1_re, p2_re, p3_re, p4_re, p1_im, p2_im, p3_im, p4_im = _fitting_coeffs[mlln]
         mu_re = p1_re*abs(spin)**p2_re + p3_re*abs(spin)**p4_re + 1 - np.sign(abs(lt-l))
         mu_im = p1_im*abs(spin)**p2_im + p3_im*abs(spin)**p4_im
         mu_re = mu_re*fre
