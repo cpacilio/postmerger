@@ -166,8 +166,10 @@ def L_isco(spin):
 
 def final_mass(mass1,mass2,spin1,spin2,alpha=0.,beta=0.,gamma=0.,aligned_spins=False,method='B12'):
     """
-    Returns the final mass of the Kerr black hole remnant from a quasi-circular binary black hole merger.
+    Returns the final mass of the Kerr black hole remnant from a quasi-circular binary black-hole merger.
     All available methods are calibrated on numerical simulations of binaries with aligned spins.
+    
+    The effects of precession are ignored and only the parallel components of the spins are used in the final expression.
 
     Parameters
     ----------
@@ -199,7 +201,7 @@ def final_mass(mass1,mass2,spin1,spin2,alpha=0.,beta=0.,gamma=0.,aligned_spins=F
         If 'phenom', it uses the fit in https://arxiv.org/abs/1508.07250 .
     
     aligned_spins : bool. Default=False.
-        Whethter to assume aligned spins. If True, spin1 and spin2 can also be negative.
+        Whether to assume aligned spins. If True, spin1 and spin2 can also be negative.
         Enabling this option overwrites the parameters alpha, beta ang gamma, setting them to zero.
 
     Returns
@@ -258,10 +260,10 @@ def final_mass(mass1,mass2,spin1,spin2,alpha=0.,beta=0.,gamma=0.,aligned_spins=F
 
 def final_spin(mass1,mass2,spin1,spin2,alpha=0.,beta=0.,gamma=0.,method='H16',aligned_spins=False,return_angle=False):
     """
-    Returns the magnitude of the dimensionless final spin of the Kerr black hole remnant from a quasi-circular binary black hole merger. Optionally, returns the angle between the final spin and the orbital plane.
+    Returns the magnitude of the dimensionless final spin of the Kerr black hole remnant from a quasi-circular binary black-hole merger. Optionally, returns the angle between the final spin and the orbital plane.
     All avaiable methods are calibrated on numerical simulations of binaries with aligned spins.
     
-    The effects of precession are treated effectively: they are included by summing in quadrature the trasverse components of the initial spins to the fitted expression for the parallel component of the final spin, and assuming that the evolution of the transverse components of the spins has a negligible effect on the final expression. See https://dcc.ligo.org/T1600168/public for further details.
+    The effects of precession are treated effectively: they are included by summing in quadrature the planar components of the initial spins to the fitted expression for the parallel component of the final spin, and assuming that the evolution of the planar components has a negligible effect on the final expression. See https://dcc.ligo.org/T1600168/public for further details.
 
     Parameters
     ----------
@@ -293,7 +295,7 @@ def final_spin(mass1,mass2,spin1,spin2,alpha=0.,beta=0.,gamma=0.,method='H16',al
         If 'phenom', it uses the fit in https://arxiv.org/abs/1508.07250 .
     
     aligned_spins : bool. Default=False.
-        Whethter to assume aligned spins. If True, spin1 and spin2 can also be negative.
+        Whether to assume aligned spins. If True, spin1 and spin2 can also be negative.
         Enabling this option overwrites the parameters alpha, beta ang gamma, setting them to zero.
     
     return_angle : bool. Default=False.

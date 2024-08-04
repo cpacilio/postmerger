@@ -49,7 +49,7 @@ print('damping time (s): ',tau)
 >>> damping time (s):  0.004032098030215414
 ```
 
-### Compute final mass and final spins
+### Compute final mass and final spin
 
 We provide functions to compute final mass and final spin from binary parameters. 
 
@@ -77,8 +77,8 @@ gamma = 0.
 alpha = np.arccos(np.cos(beta)*np.cos(gamma))
 
 ## compute final mass and final spin
-massf = pM.final_mass(mass1,mass2,spin1,spin2,beta=beta,gamma=gamma,alpha=alpha)
-spinf, thetaf = pM.final_spin(mass1,mass2,spin1,spin2,beta=beta,gamma=gamma,alpha=alpha,return_angle=True)
+massf = postMerger.final_mass(mass1,mass2,spin1,spin2,alpha,beta,gamma)
+spinf, thetaf = postMerger.final_spin(mass1,mass2,spin1,spin2,,alpha,beta,gamma,return_angle=True)
 
 ## results
 print('final mass: ',massf)
