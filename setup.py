@@ -28,6 +28,6 @@ if __name__=='__main__':
               "Programming Language :: Python :: 3.8",
               "Topic :: Scientific/Engineering :: Physics",
               "Topic :: Scientific/Engineering :: Astronomy",
-              ]
+              ],
           include_package_data=True,
           zip_safe=False)
