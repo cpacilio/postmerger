@@ -3,7 +3,7 @@
 
 ## Available models
 
-- `3dq8_20M`: Ringdown amplitudes from non-precessing, quasi-circular black-hole binaries. Calibrated at 20M after the peak of the 22 strain.
+- `3dq8_20M`: Ringdown amplitudes from non-precessing, quasi-circular black-hole binaries. Calibrated at 20M after the peak of the 22 strain. See the example notebook [3dq8_20M](examples/3dq8_20M.ipynb) for usage details.
 
 ## Basic usage
 
@@ -25,11 +25,15 @@ fitname = '3dq8_20M'
 fit = postMerger.load_fit(fitname)
 ```
 
-### Evaluate QNMs
+### Predict amplitudes and phases
 
-We provide a QNM evaluator. 
+Predicting amplitudes and phases is performed through the `predict_amp` and `predict_phase` methods of `fit`. The arguments are model-specific. See the notebooks below for examples of specific models:
 
-See the notebook [qnm_Kerr](examples/qnm_Kerr.ipynb) for advanced usage.
+- [3dq8_20M](examples/3dq8_20M.ipynb)
+
+### Evaluate quasi-normal modes of Kerr black holes
+
+We provide a QNM evaluator. See the notebook [qnm_Kerr](examples/qnm_Kerr.ipynb) for advanced usage.
 
 ```python
 ## mass and spin
@@ -51,9 +55,7 @@ print('damping time (s): ',tau)
 
 ### Evaluate spherical-spheroidal mixing coefficients
 
-We provide a mixing-coefficient evaluator.
-
-See the notebook [spherical_spheroidal_mixing](examples/spherical_spheroidal_mixing.ipynb) for further details.
+We provide a mixing-coefficient evaluator. See the notebook [spherical_spheroidal_mixing](examples/spherical_spheroidal_mixing.ipynb) for further details.
 
 ```python
 ## evaluate mu_{2320}
@@ -70,15 +72,13 @@ spin = 0.68
 mu_re, mu_im = postMerger.spherical_spheroidal_mixing(lm,mode,spin)
 
 ## results
-print('mu_{2320} =',mu_re+1j*mu_im)
->>> mu_{2320} = (0.0665939069543019+0.011046238081249502j)
+print(mu_re+1j*mu_im)
+>>> (0.0665939069543019+0.011046238081249502j)
 ```
 
 ### Compute final mass and final spin
 
-We provide functions to compute final mass and final spin from binary parameters. 
-
-See the notebook [final_mass_spin](examples/final_mass_spin.ipynb) for further details.
+We provide functions to compute final mass and final spin from binary parameters.  See the notebook [final_mass_spin](examples/final_mass_spin.ipynb) for further details.
 
 ```python
 ## (we set a binary with anti-aligned spins ending into a black-hole with final spin pointing downward)

@@ -16,6 +16,9 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 
 allowed_fits = ['3dq8_20M']
 
+fit_descr = {\
+             '3dq8_20M':'3dq8_20M models ampitudes and phases of the ringdown from a quasi-circular, non-precessing black-hole binary.\nIt is calibrated up to mass ratio 8 and at a starting time 20M from the peak of the (2,2) strain.'\
+            }
 
 def load_fit(name):
     """
@@ -31,6 +34,7 @@ def load_fit(name):
     fit_dict = joblib.load(dir_path+'/../data/trained_models/%s_gpr.pkl'%name)
     if '3dq8' in name:
         model = AmplitudeFit3dq8(fit_dict)
+        model._descr = fit_descr[name]
     return model
 
 
@@ -43,6 +47,14 @@ class AmplitudeFit3dq8():
         self.modes = {}
         for k in self._fit_amps.keys():
             if k[1]>=0: self.modes[k] = [mode for mode in self._fit_amps[k].keys()]
+                
+    def __print__(self):
+        out = self._descr
+        return out
+
+    def __repr__(self):
+        out = self._descr
+        return out
 
     def predict_xy_amp(self,mass_ratio,chi1z,chi2z,lm,mode,return_std=False):
         """
@@ -92,8 +104,7 @@ class AmplitudeFit3dq8():
                 mu_x, mu_y = out_mu.T
                 return mu_x, mu_y
 
-    def predict_amp(self,mass_ratio,chi1z,chi2z,\
-                      lm,mode,return_std=False,start_time=None):
+    def predict_amp(self,mass_ratio,chi1z,chi2z,lm,mode,return_std=False,start_time=None):
         """
         Predict the value of abs(A^x+iA^y) corresponding to the query points (mass_ratio,chi1z,chi2z).
 
@@ -323,8 +334,8 @@ class AmplitudeFit3dq8():
         DT = start_time - self.t0
         mass1 = mass_ratio/(1+mass_ratio)
         mass2 = 1/(1+mass_ratio)
-        mf = final_mass(mass1,mass2,chi1z,chi2z,method=1)
-        sf = final_spin(mass1,mass2,chi1z,chi2z,aligned_spins=True,method=1)
+        mf = final_mass(mass1,mass2,chi1z,chi2z,method='B12')
+        sf = final_spin(mass1,mass2,chi1z,chi2z,aligned_spins=True,method='H16')
         if hasattr(mode[0],'__len__'):
             ## handle quadratic mode
             inv_tau = 0.
@@ -344,8 +355,8 @@ class AmplitudeFit3dq8():
         DT = start_time - self.t0
         mass1 = mass_ratio/(1+mass_ratio)
         mass2 = 1/(1+mass_ratio)
-        mf = final_mass(mass1,mass2,chi1z,chi2z,method=1)
-        sf = final_spin(mass1,mass2,chi1z,chi2z,aligned_spins=True,method=1)
+        mf = final_mass(mass1,mass2,chi1z,chi2z,method='B12')
+        sf = final_spin(mass1,mass2,chi1z,chi2z,aligned_spins=True,method='H16')
         if hasattr(mode[0],'__len__'):
             ## handle quadratic mode
             freq = 0.
@@ -357,6 +368,7 @@ class AmplitudeFit3dq8():
         if lm!=(2,2) or mode!=(2,2,0):
             freq -= 0.5*lm[1]*qnm_Kerr(mf,sf,(2,2,0),qnm_method=qnm_method)[0]
         out = phase + 2*np.pi*freq*DT
+        out = np.angle(np.exp(1j*out))
         return out
 
 
