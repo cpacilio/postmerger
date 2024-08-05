@@ -18,7 +18,7 @@ if __name__=='__main__':
           install_requires=[
               'numpy>=1.24.4',
               'joblib>=1.3.2',
-              'scipy>=1.10.1'
+              'scipy>=1.10.1',
               'scikit-learn>=1.3.2',
               ],
           classifiers=[
