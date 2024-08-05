@@ -18,12 +18,6 @@ cd postmerger
 pip install .
 ```
 
-### From PyPI
-
-```
-pip install postmerger
-```
-
 ## Basic usage
 
 ```python
