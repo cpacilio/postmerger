@@ -1,5 +1,6 @@
-# postMerger
-**postMerger** provides surrogate fits for binary black-hole remnants.
+# postmerger
+
+**postmerger** provides surrogate fits for binary black-hole remnants.
 
 ### Available models
 
@@ -10,27 +11,27 @@
 ### From source
 
 ```
-git clone https://github.com/cpacilio/postMerger.git
-cd postMerger
+git clone https://github.com/cpacilio/postmerger.git
+cd postmerger
 pip install .
 ```
 
 ### From PyPI
 
 ```
-pip install postMerger
+pip install postmerger
 ```
 
 ## Basic usage
 
 ```python
-import postMerger
+import postmerger
 ```
 
 ### List of available fits
 
 ```python
-postMerger.allowed_fits
+postmerger.allowed_fits
 >>> ['3dq8_20M']
 ```
 
@@ -38,7 +39,7 @@ postMerger.allowed_fits
 
 ```python
 fitname = '3dq8_20M'
-fit = postMerger.load_fit(fitname)
+fit = postmerger.load_fit(fitname)
 ```
 
 ### Predict amplitudes and phases
@@ -60,7 +61,7 @@ spin = 0.67
 mode = (2,2,0)
 
 ## evaluate in SI units
-f, tau = postMerger.qnm_Kerr(mass,spin,mode,SI_units=True)
+f, tau = postmerger.qnm_Kerr(mass,spin,mode,SI_units=True)
 
 ## results
 print('frequency (Hz): ',f)
@@ -85,7 +86,7 @@ mode = (2,2,0)
 ## final spin
 spin = 0.68
 
-mu_re, mu_im = postMerger.spherical_spheroidal_mixing(lm,mode,spin)
+mu_re, mu_im = postmerger.spherical_spheroidal_mixing(lm,mode,spin)
 
 ## results
 print(mu_re+1j*mu_im)
@@ -118,8 +119,8 @@ gamma = 0.
 alpha = np.arccos(np.cos(beta)*np.cos(gamma))
 
 ## compute final mass and final spin
-massf = postMerger.final_mass(mass1,mass2,spin1,spin2,alpha,beta,gamma)
-spinf, thetaf = postMerger.final_spin(mass1,mass2,spin1,spin2,,alpha,beta,gamma,return_angle=True)
+massf = postmerger.final_mass(mass1,mass2,spin1,spin2,alpha,beta,gamma)
+spinf, thetaf = postmerger.final_spin(mass1,mass2,spin1,spin2,,alpha,beta,gamma,return_angle=True)
 
 ## results
 print('final mass: ',massf)

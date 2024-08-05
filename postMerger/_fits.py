@@ -31,7 +31,7 @@ def load_fit(name):
     """
     if name not in allowed_fits:
         raise ValueError('name must be one of '+str(allowed_fits))
-    fit_dict = joblib.load(dir_path+'/../data/trained_models/%s_gpr.pkl'%name)
+    fit_dict = joblib.load(dir_path+'/data/trained_models/%s_gpr.pkl'%name)
     if '3dq8' in name:
         model = AmplitudeFit3dq8(fit_dict)
         model._descr = fit_descr[name]
@@ -340,12 +340,12 @@ class AmplitudeFit3dq8():
             ## handle quadratic mode
             inv_tau = 0.
             for linear_mode in mode:
-                inv_tau += 1./qnm_Kerr(mf,sf,linear_mode,qnm_method=qnm_method)[1]
+                inv_tau += 1./qnm_Kerr(mf,sf,linear_mode,qnm_method=qnm_method,SI_units=False)[1]
         else:
             ## handle linear mode
-            inv_tau = 1./qnm_Kerr(mf,sf,mode,qnm_method=qnm_method)[1]
+            inv_tau = 1./qnm_Kerr(mf,sf,mode,qnm_method=qnm_method,SI_units=False)[1]
         if lm!=(2,2) or mode!=(2,2,0):
-            inv_tau -= 1./qnm_Kerr(mf,sf,(2,2,0),qnm_method=qnm_method)[1]
+            inv_tau -= 1./qnm_Kerr(mf,sf,(2,2,0),qnm_method=qnm_method,SI_units=False)[1]
         out = amp*np.exp(-DT*inv_tau)
         return out
 
@@ -361,12 +361,12 @@ class AmplitudeFit3dq8():
             ## handle quadratic mode
             freq = 0.
             for linear_mode in mode:
-                freq += qnm_Kerr(mf,sf,linear_mode,qnm_method=qnm_method)[0]
+                freq += qnm_Kerr(mf,sf,linear_mode,qnm_method=qnm_method,SI_units=False)[0]
         else:
             ## handle linear mode
-            freq = 1./qnm_Kerr(mf,sf,mode,qnm_method=qnm_method)[0]
+            freq = 1./qnm_Kerr(mf,sf,mode,qnm_method=qnm_method,SI_units=False)[0]
         if lm!=(2,2) or mode!=(2,2,0):
-            freq -= 0.5*lm[1]*qnm_Kerr(mf,sf,(2,2,0),qnm_method=qnm_method)[0]
+            freq -= 0.5*lm[1]*qnm_Kerr(mf,sf,(2,2,0),qnm_method=qnm_method,SI_units=False)[0]
         out = phase + 2*np.pi*freq*DT
         out = np.angle(np.exp(1j*out))
         return out

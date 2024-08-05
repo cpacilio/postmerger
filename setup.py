@@ -6,11 +6,11 @@ def readme():
 
 
 if __name__=='__main__':
-    setup(name='postMerger',
+    setup(name='postmerger',
           version='0.0.1',
           description='surrogate fits for binary black-hole remnants',
           long_description=readme(),
-          url='https://github.com/cpacilio/postMerger',
+          url='https://github.com/cpacilio/postmerger',
           author='Costantino Pacilio',
           author_email='costantinopacilio1990@gmail.com',
           license='MIT',

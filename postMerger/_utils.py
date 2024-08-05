@@ -376,7 +376,7 @@ def final_spin(mass1,mass2,spin1,spin2,alpha=0.,beta=0.,gamma=0.,method='H16',al
     else:
         return np.clip(a_fin,-1.,1.)
 
-def qnm_Kerr(mass,spin,mode,prograde=1,qnm_method='interp',SI_units=False):
+def qnm_Kerr(mass,spin,mode,prograde=1,qnm_method='interp',SI_units=True):
     """
     Returns the frequency and the damping time of a Kerr black hole.
 
@@ -402,7 +402,7 @@ def qnm_Kerr(mass,spin,mode,prograde=1,qnm_method='interp',SI_units=False):
         
         If 'L18', uses the fits in https://arxiv.org/abs/1810.03550 . They are defined for spin in the whole physical range [-1,1].
     
-    SI_units : bool. Default=False.
+    SI_units : bool. Default=True.
         If True, returns frenquency in units of Hz and damping time in units of s.
         If False, returns frequency and damping time in dimensionless units, rescaling them by tsun=G*M_SUM/c**3.
 
@@ -474,9 +474,9 @@ def qnm_Kerr(mass,spin,mode,prograde=1,qnm_method='interp',SI_units=False):
         ## if all spins are non-negative
         if np.all(spin>=0):
             if sign_p>=0:
-                filename = dir_path+'/../data/bcw_qnm_tables/l%s/n%sl%sm%s.dat'%(l,n+1,l,m)
+                filename = dir_path+'/data/bcw_qnm_tables/l%s/n%sl%sm%s.dat'%(l,n+1,l,m)
             elif sign_p<0:
-                filename = dir_path+'/../data/bcw_qnm_tables/l%s/n%sl%smm%s.dat'%(l,n+1,l,m)
+                filename = dir_path+'/data/bcw_qnm_tables/l%s/n%sl%smm%s.dat'%(l,n+1,l,m)
             try:
                 chi, omega_re, omega_im, _, _ = np.loadtxt(filename).T
             except:
@@ -485,7 +485,7 @@ def qnm_Kerr(mass,spin,mode,prograde=1,qnm_method='interp',SI_units=False):
             tau = mass/np.interp(np.abs(spin),chi,-omega_im)
         ## elif all spins are negative
         elif np.all(spin<0):
-            f, tau = qnm_Kerr(mass,-spin,mode=(l,-sign_m*m,n),prograde=-sign_p,qnm_method='interp')
+            f, tau = qnm_Kerr(mass,-spin,mode=(l,-sign_m*m,n),prograde=-sign_p,qnm_method='interp',SI_units=False)
         ## elif spins have mixed signature
         else:
             mask = spin>=0
@@ -495,8 +495,8 @@ def qnm_Kerr(mass,spin,mode,prograde=1,qnm_method='interp',SI_units=False):
                 mass_tmp = np.ones_like(spin)*mass
             else:
                 mass_tmp = mass
-            f[mask], tau[mask] = qnm_Kerr(mass_tmp[mask],spin[mask],mode=(l,sign_m*m,n),prograde=sign_p,qnm_method='interp')
-            f[~mask], tau[~mask] = qnm_Kerr(mass_tmp[~mask],-spin[~mask],mode=(l,-sign_m*m,n),prograde=-sign_p,qnm_method='interp')
+            f[mask], tau[mask] = qnm_Kerr(mass_tmp[mask],spin[mask],mode=(l,sign_m*m,n),prograde=sign_p,qnm_method='interp',SI_units=False)
+            f[~mask], tau[~mask] = qnm_Kerr(mass_tmp[~mask],-spin[~mask],mode=(l,-sign_m*m,n),prograde=-sign_p,qnm_method='interp',SI_units=False)
     
     if SI_units:
         f = f/tsun
@@ -564,7 +564,7 @@ def spherical_spheroidal_mixing(lm,mode,spin,method='BK14',prograde=1,qnm_method
         if lt==l:
             return 1, 0
         f, tau = qnm_Kerr(1.,spin,mode=mode,prograde=prograde,\
-                      qnm_method=qnm_method)
+                      qnm_method=qnm_method,SI_units=False)
         omega = 2*np.pi*f - 1j/tau
         ##
         out = -2*(spin*omega)*s*np.sqrt((2*l+1)/(2*lt+1))*\
@@ -583,7 +583,7 @@ def spherical_spheroidal_mixing(lm,mode,spin,method='BK14',prograde=1,qnm_method
         ## use the fits at https://arxiv.org/abs/1408.1860
         ## available at https://pages.jh.edu/eberti2/ringdown/
         if _fitting_coeffs=={}:
-            filename = dir_path+'/../data/berti_klein_mixing/swsh_fits.dat'
+            filename = dir_path+'/data/berti_klein_mixing/swsh_fits.dat'
             x = np.loadtxt(filename,dtype='object')
             for xi in x:
                 mlln = tuple(xi[:4].astype(int))
