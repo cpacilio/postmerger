@@ -1,8 +1,6 @@
 # postmerger
 
-```markdown
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.13220425.svg)](https://doi.org/10.5281/zenodo.13220425)
-```
 
 `postmerger` provides surrogate fits for binary black-hole remnants.
 
@@ -133,5 +131,25 @@ print('final orientation: ',np.cos(thetaf))
 >>> final mass: 29.62197225289648
 >>> final spin: 0.12753062487767092
 >>> final orientation: -1.0
+```
+
+## Citation
+
+If you use `postmerger` in your work, please cite the following entries:
+
+```latex
+@software{pacilio_2024_13220425,
+  author       = {Pacilio, Costantino and
+                  Swetha, Bhagwat and
+                  Francesco, Nobili and
+                  Gerosa, Davide},
+  title        = {postmerger},
+  month        = aug,
+  year         = 2024,
+  publisher    = {Zenodo},
+  version      = {v0.0.1},
+  doi          = {10.5281/zenodo.13220425},
+  url          = {https://doi.org/10.5281/zenodo.13220425}
+}
 ```
 
