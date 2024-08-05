@@ -1,5 +1,9 @@
 # postmerger
 
+```markdown
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.13220425.svg)](https://doi.org/10.5281/zenodo.13220425)
+```
+
 `postmerger` provides surrogate fits for binary black-hole remnants.
 
 ### Available models
