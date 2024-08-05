@@ -10,7 +10,7 @@
 ### From source
 
 ```
-git clone git@github.com:cpacilio/postMerger.git
+git clone https://github.com/cpacilio/postMerger.git
 cd postMerger
 pip install .
 ```
