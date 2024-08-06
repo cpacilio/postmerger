@@ -7,7 +7,7 @@ def readme():
 
 if __name__=='__main__':
     setup(name='postmerger',
-          version='0.0.1',
+          version='0.0.2',
           description='surrogate fits for binary black-hole remnants',
           long_description=readme(),
           url='https://github.com/cpacilio/postmerger',
@@ -16,10 +16,10 @@ if __name__=='__main__':
           license='MIT',
           packages=find_packages(),
           install_requires=[
-              'numpy<=1.24.4',
-              'joblib<=1.3.2',
-              'scipy<=1.10.1',
-              'scikit-learn<=1.3.2',
+              'numpy<2.0.0',
+              'joblib>=1.3.2',
+              'scipy>=1.10.1',
+              'scikit-learn>=1.3.2',
               ],
           classifiers=[
               "Intended Audience :: Science/Research",
