@@ -19,7 +19,7 @@ if __name__=='__main__':
               'numpy<2.0.0',
               'joblib>=1.3.2',
               'scipy>=1.10.1',
-              'scikit-learn>=1.3.2',
+              'scikit-learn>=1.5.0',
               ],
           classifiers=[
               "Intended Audience :: Science/Research",

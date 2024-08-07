@@ -147,3 +147,7 @@ If you use `postmerger` in your work, please cite the following entries:
 }
 ```
 
+## Coming soon
+
+- Surrogate fits for the final mass and final spin of the remnant 
+- API
