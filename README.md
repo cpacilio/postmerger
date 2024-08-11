@@ -6,7 +6,7 @@
 
 ### Available models
 
-- `3dq8_20M`: Ringdown amplitudes from non-precessing, quasi-circular black-hole binaries. Calibrated at $20M$ after the peak of the $(2,2)$ strain. See the example notebook [3dq8_20M](examples/3dq8_20M.ipynb) for usage details.
+- `3dq8_20M`: Ringdown amplitudes from non-precessing, quasi-circular black-hole binaries. Calibrated at $20M$ after the peak of the $(2,2)$ strain. See the example notebook [3dq8_20M](examples/3dq8_20M.ipynb) for usage details. Described in the following paper: XXX .
 
 ## Installation
 
