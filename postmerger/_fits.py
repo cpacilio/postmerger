@@ -404,8 +404,11 @@ class CustomGPR(RegressorMixin,BaseEstimator):
          """
         if sample_weight is None:
             sample_weight = np.ones((X.shape[0],))
+            alpha = 1e-10
+        else:
+            alpha=1/sample_weight
         self._linear_fit(X,y,sample_weight=sample_weight)
-        self._gpr_fit(X,y,alpha=1/sample_weight,\
+        self._gpr_fit(X,y,alpha=alpha,\
                     normalize_y=normalize_y,\
                     n_restarts_optimizer=0,\
                     **kwargs)
@@ -480,10 +483,7 @@ class CustomGPR(RegressorMixin,BaseEstimator):
             None (default) is equivalent to 1-D sample_weight filled with ones.
         """
         y_pred, std_pred = self.predict(X,return_std=True)
-        out = mean_squared_error(y_true,y_pred,sample_weight=sample_weight,\
-                multioutput='raw_values')
-        out = out/std_pred**2
-        out = np.mean(out)**0.5
+        out = np.mean((y_true-y_pred)**2/std_pred**2)**0.5
         return out
 
     def r2_score(self,X,y_true,sample_weight=None):
