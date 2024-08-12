@@ -20,6 +20,7 @@ if __name__=='__main__':
               'joblib>=1.3.2',
               'scipy>=1.10.1',
               'scikit-learn>=1.5.0',
+              'pandas>=1.2.4',
               ],
           classifiers=[
               "Intended Audience :: Science/Research",

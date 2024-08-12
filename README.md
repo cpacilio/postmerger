@@ -127,6 +127,12 @@ print('final orientation: ',np.cos(thetaf))
 >>> final orientation: -1.0
 ```
 
+## Reproducibility
+
+To help reproducibility, we provide data on which our model were trained:
+
+- [data_for_3dq8_20M](examples/data_for_3dq8_20M.ipynb)
+
 ## Citation
 
 If you use `postmerger` in your work, please cite the following entries:
