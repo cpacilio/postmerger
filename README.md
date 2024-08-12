@@ -138,6 +138,19 @@ To help reproducibility, we provide data on which our model were trained:
 If you use `postmerger` in your work, please cite the following entries:
 
 ```latex
+@article{Pacilio:2024XXX,
+	archiveprefix = {arXiv},
+	author = {Pacilio, Costantino and Swetha, Bhagwat and Francesco, Nobili and Gerosa, Davide},
+	eprint = {2408.XXXXX},
+	month = {8},
+	primaryclass = {gr-qc},
+	title = {{postmerger: A flexible mapping of ringdown amplitudes for non-precessing binary black holes}},
+	year = {2024}}
+```
+
+
+
+```latex
 @software{pacilio_2024_13220424,
   author       = {Pacilio, Costantino and
                   Swetha, Bhagwat and
