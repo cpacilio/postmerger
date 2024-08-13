@@ -483,7 +483,10 @@ class CustomGPR(RegressorMixin,BaseEstimator):
             None (default) is equivalent to 1-D sample_weight filled with ones.
         """
         y_pred, std_pred = self.predict(X,return_std=True)
-        out = np.mean((y_true-y_pred)**2/std_pred**2)**0.5
+        if sample_weight is not None:
+            out = (np.sum((y_true-y_pred)**2/std_pred**2*sample_weight)/np.sum(sample_weight))**0.5
+        else:
+            out = np.mean((y_true-y_pred)**2/std_pred**2)**0.5
         return out
 
     def r2_score(self,X,y_true,sample_weight=None):
