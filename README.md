@@ -139,13 +139,13 @@ If you use `postmerger` in your work, please cite the following entries:
 
 ```latex
 @article{Pacilio:2024tdl,
-    author = "Pacilio, Costantino and Bhagwat, Swetha and Nobili, Francesco and Gerosa, Davide",
-    title = "{postmerger: A flexible mapping of ringdown amplitudes for non-precessing binary black holes}",
-    eprint = "2408.05276",
-    archivePrefix = "arXiv",
-    primaryClass = "gr-qc",
-    month = "8",
-    year = "2024"
+    author = {Pacilio, Costantino and Bhagwat, Swetha and Nobili, Francesco and Gerosa, Davide},
+    title = {{postmerger: A flexible mapping of ringdown amplitudes for non-precessing binary black holes}},
+    eprint = {2408.05276},
+    archivePrefix = {arXiv},
+    primaryClass = {gr-qc},
+    month = {8},
+    year = {2024}
 }
 ```
 
