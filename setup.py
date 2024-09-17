@@ -17,6 +17,7 @@ if __name__=='__main__':
           packages=find_packages(),
           install_requires=[
               'numpy<2.0.0',
+              'numpy>=1.24.0',
               'joblib>=1.3.2',
               'scipy>=1.10.1',
               'scikit-learn>=1.5.0',
