@@ -334,7 +334,7 @@ class AmplitudeFit3dq8():
         DT = start_time - self.t0
         mass1 = mass_ratio/(1+mass_ratio)
         mass2 = 1/(1+mass_ratio)
-        mf = final_mass(mass1,mass2,chi1z,chi2z,method='B12')
+        mf = final_mass(mass1,mass2,chi1z,chi2z,aligned_spins=True,method='B12')
         sf = final_spin(mass1,mass2,chi1z,chi2z,aligned_spins=True,method='H16')
         if hasattr(mode[0],'__len__'):
             ## handle quadratic mode
@@ -355,7 +355,7 @@ class AmplitudeFit3dq8():
         DT = start_time - self.t0
         mass1 = mass_ratio/(1+mass_ratio)
         mass2 = 1/(1+mass_ratio)
-        mf = final_mass(mass1,mass2,chi1z,chi2z,method='B12')
+        mf = final_mass(mass1,mass2,chi1z,chi2z,aligned_spins=True,method='B12')
         sf = final_spin(mass1,mass2,chi1z,chi2z,aligned_spins=True,method='H16')
         if hasattr(mode[0],'__len__'):
             ## handle quadratic mode
