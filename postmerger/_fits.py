@@ -109,9 +109,10 @@ def _shift_amp_general(self,amp,final_mass_val,final_spin_val,\
     """
     massf = final_mass_val
     spinf = final_spin_val
-    
-    if start_time == self.t0:
-        return amp
+
+    # commented to handle multiple starting times
+    #if start_time == self.t0:
+    #    return amp
     DT = start_time - self.t0
 
     if lm == (2, 0):
@@ -129,10 +130,8 @@ def _shift_amp_general(self,amp,final_mass_val,final_spin_val,\
         ## handle linear mode
         inv_tau = 1.0/qnm_Kerr(massf,spinf,mode,qnm_method=qnm_method,\
                                SI_units=False)[1]
-    if lm!=(2,2) or mode!=(2,2,0):
-        inv_tau -= (1.0/qnm_Kerr(massf,spinf,(2,2,0),qnm_method=qnm_method,\
-                                 SI_units=False)[1])
-    out = amp*np.exp(-DT*inv_tau)
+        
+    out = (amp.T*np.exp(-DT*inv_tau)).T
     return out
 
 
@@ -1530,8 +1529,8 @@ class AmplitudeFit3dq8:
         return out
 
     def _shift_amp(self,amp,mass_ratio,chi1z,chi2z,lm,mode,start_time,qnm_method="interp"):
-        if start_time == self.t0:
-            return amp
+        #if start_time == self.t0:
+        #    return amp
         DT = start_time - self.t0
         mass1 = mass_ratio/(1+mass_ratio)
         mass2 = 1/(1+mass_ratio)
@@ -1547,12 +1546,12 @@ class AmplitudeFit3dq8:
             inv_tau = (1.0/qnm_Kerr(mf,sf,mode,qnm_method=qnm_method,SI_units=False)[1])
         if lm!=(2, 2) or mode!=(2, 2, 0):
             inv_tau -= (1.0/qnm_Kerr(mf, sf, (2, 2, 0), qnm_method=qnm_method, SI_units=False)[1])
-        out = amp*np.exp(-DT*inv_tau)
+        out = (amp.T*np.exp(-DT*inv_tau)).T
         return out
 
     def _shift_phase(self,phase,mass_ratio,chi1z,chi2z,lm,mode,start_time, qnm_method="interp"):
-        if start_time == self.t0:
-            return phase
+        #if start_time == self.t0:
+        #    return phase
         DT = start_time - self.t0
         mass1 = mass_ratio/(1 + mass_ratio)
         mass2 = 1/(1 + mass_ratio)
