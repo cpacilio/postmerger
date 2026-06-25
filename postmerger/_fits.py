@@ -1566,7 +1566,7 @@ class AmplitudeFit3dq8:
             freq = (1.0/qnm_Kerr(mf,sf,mode,qnm_method=qnm_method,SI_units=False)[0])
         if lm!=(2,2) or mode!=(2,2,0):
             freq -= (0.5*lm[1]*qnm_Kerr(mf,sf,(2,2,0),qnm_method=qnm_method,SI_units=False)[0])
-        out = phase + 2*np.pi*freq*DT
+        out = (phase.T + 2*np.pi*freq*DT).T
         out = np.angle(np.exp(1j*out))
         return out
 
