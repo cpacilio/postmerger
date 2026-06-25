@@ -19,12 +19,13 @@ import os
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
 
-allowed_fits = ["3dq8_20M", "Prec6dq10_20M", "Prec7dq10_20M"]
+allowed_fits = ["3dq8_20M", "Prec6dq10_20M", "Prec7dq10_20M", "Remnant_Prec7dq10"]
 
 fit_descr = {
     "3dq8_20M": "3dq8_20M models amplitudes and phases of the ringdown from a quasi-circular, non-precessing black-hole binary.\nIt is calibrated up to mass ratio 8 and at a starting time 20M from the peak of the (2,2) strain.",
     "Prec6dq10_20M": "Prec6dq10_20M models amplitudes of the ringdown from a quasi-circular, precessing black-hole binary.\nIt is calibrated up to mass ratio 10 and at a starting time 20M from t_emop of the simulation.\nIt also provides an uncertainty estimate calibrated on the cross-validation absolute error on the amplitude values.\nNote that the coverage in the binary parameters can be sparse for high mass ratios, see Figure 4 of THE PAPER.",
     "Prec7dq10_20M": "Prec7dq10_20M models amplitudes of the ringdown from a quasi-circular, precessing black-hole binary.\nIt is calibrated up to mass ratio 10 and at a starting time 20M from t_emop of the simulation.\nIt also provides an uncertainty estimate calibrated on the cross-validation absolute error on the amplitude values.\nNote that the coverage in the binary parameters can be sparse for high mass ratios, see Figure 4 of THE PAPER.",
+    "Remnant_Prec7dq10": "Remnant_Prec7dq10 models the remnant mass and spin of a a quasi-circular, precessing black-hole binary.\nIt is calibrated up to mass ratio 10.\nIt assumes that the binary spins are defined at ISCO.\nNote that the coverage in the binary parameters can be sparse for high mass ratios, see Figure 4 of THE PAPER."
 }
 
 def download_model(filename,folder):
@@ -91,6 +92,9 @@ def load_fit(name, download=True):
     elif "Prec6dq10" in name:
         model = AmplitudeFitPrec6dq10(fit_dict)
         model._descr = fit_descr[name]
+    elif "Remnant_Prec7dq10" in name:
+        model = RemnantFitPrec7dq10(fit_dict)
+        model._descr = fit_descr[name]
     elif "Prec7dq10" in name:
         model = AmplitudeFitPrec7dq10(fit_dict)
         model._descr = fit_descr[name]
@@ -110,8 +114,8 @@ def _shift_amp_general(self,amp,final_mass_val,final_spin_val,\
     massf = final_mass_val
     spinf = final_spin_val
     
-    if start_time == self.t0:
-        return amp
+    #if start_time == self.t0:
+    #    return amp
     DT = start_time - self.t0
 
     if lm == (2, 0):
@@ -129,10 +133,10 @@ def _shift_amp_general(self,amp,final_mass_val,final_spin_val,\
         ## handle linear mode
         inv_tau = 1.0/qnm_Kerr(massf,spinf,mode,qnm_method=qnm_method,\
                                SI_units=False)[1]
-    if lm!=(2,2) or mode!=(2,2,0):
-        inv_tau -= (1.0/qnm_Kerr(massf,spinf,(2,2,0),qnm_method=qnm_method,\
-                                 SI_units=False)[1])
-    out = amp*np.exp(-DT*inv_tau)
+    #if lm!=(2,2) or mode!=(2,2,0):
+    #    inv_tau -= (1.0/qnm_Kerr(massf,spinf,(2,2,0),qnm_method=qnm_method,\
+    #                             SI_units=False)[1])
+    out = ((amp.T)*np.exp(-DT*inv_tau)).T
     return out
 
 
@@ -157,7 +161,477 @@ def _make_stacked_array(*args):
 
     return np.vstack(broadcasted).T
 
+class RemnantFitPrec7dq10:
+    def __init__(self, fit_dict):
+        self._fit_massf = fit_dict["massf"]
+        self._fit_chifz = fit_dict["chifz"]
+        self._fit_chif_perp = fit_dict["chif_perp"]
 
+    def __print__(self):
+        out = self._descr
+        return out
+
+    def __repr__(self):
+        out = self._descr
+        return out
+
+    def predict_final_mass(
+        self,
+        delta,
+        chi1_x,
+        chi1_y,
+        chi1_z,
+        chi2_x,
+        chi2_y,
+        chi2_z,
+        return_std=False
+    ):
+        """
+        Predict the values of the remnant mass corresponding to the query points.
+
+
+        Parameters
+        ----------
+        delta : array_like of shape (n_samples,) or float
+            Asymmetric mass ratio of the query points. delta = (q-1)/(q+1) where q is the mass ratio. q = m1/m2 >= 1.
+
+        chi1_x : array_like of shape (n_samples,) or float
+            x-component of the primary spin at ISCO.
+
+        chi1_y : array_like of shape (n_samples,) or float
+            y-component of the primary spin at ISCO.
+
+        chi1_z : array_like of shape (n_samples,) or float
+            z-component of the primary spin at ISCO.
+
+        chi2_x : array_like of shape (n_samples,) or float
+            x-component of the secondary spin at ISCO.
+
+        chi2_y : array_like of shape (n_samples,) or float
+            y-component of the secondary spin at ISCO.
+
+        chi2_z : array_like of shape (n_samples,) or float
+            z-component of the secondary spin at ISCO.
+
+        return_std : bool. Default=False.
+            Whether or not to return the standard deviation of the predictive distribution at the query points.
+        """
+        
+        ## transform to chip and chim
+        chip = 0.5*((1+delta)*chi1_z + (1-delta)*chi2_z)
+        chim = 0.5*((1+delta)*chi1_z - (1-delta)*chi2_z)
+
+        X = _make_stacked_array(
+            delta,
+            chip,
+            chim,
+            chi1_x,
+            chi1_y,
+            chi2_x,
+            chi2_y,
+        )
+
+        if return_std:
+            avg_mf, std_mf = self._fit_massf.predict(
+                X, return_std=return_std
+            )
+            return 1 - avg_mf, std_mf
+
+        else:
+            avg_mf = self._fit_massf.predict(X, return_std=return_std)
+            return 1 - avg_mf
+
+    def predict_final_spin(
+        self,
+        delta,
+        chi1_x,
+        chi1_y,
+        chi1_z,
+        chi2_x,
+        chi2_y,
+        chi2_z,
+        return_std=False
+    ):
+        """
+        Predict the values of the remnant spin corresponding to the query points.
+
+
+        Parameters
+        ----------
+        delta : array_like of shape (n_samples,) or float
+            Asymmetric mass ratio of the query points. delta = (q-1)/(q+1) where q is the mass ratio. q = m1/m2 >= 1.
+
+        chi1_x : array_like of shape (n_samples,) or float
+            x-component of the primary spin at ISCO.
+
+        chi1_y : array_like of shape (n_samples,) or float
+            y-component of the primary spin at ISCO.
+
+        chi1_z : array_like of shape (n_samples,) or float
+            z-component of the primary spin at ISCO.
+
+        chi2_x : array_like of shape (n_samples,) or float
+            x-component of the secondary spin at ISCO.
+
+        chi2_y : array_like of shape (n_samples,) or float
+            y-component of the secondary spin at ISCO.
+
+        chi2_z : array_like of shape (n_samples,) or float
+            z-component of the secondary spin at ISCO.
+
+        return_std : bool. Default=False.
+            Whether or not to return the standard deviation of the predictive distribution at the query points.
+        """
+        
+        ## transform to chip and chim
+        chip = 0.5*((1+delta)*chi1_z + (1-delta)*chi2_z)
+        chim = 0.5*((1+delta)*chi1_z - (1-delta)*chi2_z)
+        m1 = 0.5*(1+delta)
+        m2 = 0.5*(1-delta)
+        chi_perp = ((m1**2*chi1_x + m2**2*chi2_x)**2 + (m1**2*chi1_y + m2**2*chi2_y)**2)**0.5
+
+        X = _make_stacked_array(
+            delta,
+            chip,
+            chim,
+            chi1_x,
+            chi1_y,
+            chi2_x,
+            chi2_y,
+        )
+
+        if return_std:
+            avg_chifz, std_chifz = self._fit_chifz.predict(
+                X, return_std=return_std
+            )
+            avg_chif_perp, std_chif_perp = self._fit_chif_perp.predict(
+                X, return_std=return_std
+            )
+            avg_chif_perp = avg_chif_perp + chi_perp
+            avg_chif = (avg_chifz**2 + avg_chif_perp**2)**0.5
+            std_chif = (avg_chifz*std_chifz + avg_chif_perp*std_chif_perp)/(avg_chif + 1e-4)
+            return avg_chif, std_chif
+
+        else:
+            avg_chifz = self._fit_chifz.predict(X, return_std=return_std)
+            avg_chif_perp = self._fit_chif_perp.predict(X, return_std=return_std)
+            avg_chif_perp = avg_chif_perp + chi_perp
+            avg_chif = (avg_chifz**2 + avg_chif_perp**2)**0.5
+            return avg_chif
+
+    def predict_chifz(
+        self,
+        delta,
+        chi1_x,
+        chi1_y,
+        chi1_z,
+        chi2_x,
+        chi2_y,
+        chi2_z,
+        return_std=False
+    ):
+        """
+        Predict the values of the z component of the remnant spin corresponding to the query points.
+
+
+        Parameters
+        ----------
+        delta : array_like of shape (n_samples,) or float
+            Asymmetric mass ratio of the query points. delta = (q-1)/(q+1) where q is the mass ratio. q = m1/m2 >= 1.
+
+        chi1_x : array_like of shape (n_samples,) or float
+            x-component of the primary spin at ISCO.
+
+        chi1_y : array_like of shape (n_samples,) or float
+            y-component of the primary spin at ISCO.
+
+        chi1_z : array_like of shape (n_samples,) or float
+            z-component of the primary spin at ISCO.
+
+        chi2_x : array_like of shape (n_samples,) or float
+            x-component of the secondary spin at ISCO.
+
+        chi2_y : array_like of shape (n_samples,) or float
+            y-component of the secondary spin at ISCO.
+
+        chi2_z : array_like of shape (n_samples,) or float
+            z-component of the secondary spin at ISCO.
+
+        return_std : bool. Default=False.
+            Whether or not to return the standard deviation of the predictive distribution at the query points.
+        """
+        
+        ## transform to chip and chim
+        chip = 0.5*((1+delta)*chi1_z + (1-delta)*chi2_z)
+        chim = 0.5*((1+delta)*chi1_z - (1-delta)*chi2_z)
+
+        X = _make_stacked_array(
+            delta,
+            chip,
+            chim,
+            chi1_x,
+            chi1_y,
+            chi2_x,
+            chi2_y,
+        )
+
+        if return_std:
+            avg_chifz, std_chifz = self._fit_chifz.predict(
+                X, return_std=return_std
+            )
+            return avg_chifz, std_chifz
+
+        else:
+            avg_chifz = self._fit_chifz.predict(X, return_std=return_std)
+            return avg_chifz
+
+    def sample_final_mass(
+        self,
+        delta,
+        chi1_x,
+        chi1_y,
+        chi1_z,
+        chi2_x,
+        chi2_y,
+        chi2_z,
+        n_samples=1
+    ):
+        """
+        Draw samples of the remnant mass from the predictive distribution corresponding to the query points.
+
+
+        Parameters
+        ----------
+        delta : array_like of shape (n_samples,) or float
+            Asymmetric mass ratio of the query points. delta = (q-1)/(q+1) where q is the mass ratio. q = m1/m2 >= 1.
+
+        chi1_x : array_like of shape (n_samples,) or float
+            x-component of the primary spin at ISCO.
+
+        chi1_y : array_like of shape (n_samples,) or float
+            y-component of the primary spin at ISCO.
+
+        chi1_z : array_like of shape (n_samples,) or float
+            z-component of the primary spin at ISCO.
+
+        chi2_x : array_like of shape (n_samples,) or float
+            x-component of the secondary spin at ISCO.
+
+        chi2_y : array_like of shape (n_samples,) or float
+            y-component of the secondary spin at ISCO.
+
+        chi2_z : array_like of shape (n_samples,) or float
+            z-component of the secondary spin at ISCO.
+
+        n_samples : int
+            Number of samples to draw from the predictive distribution.
+        """
+        
+        ## transform to chip and chim
+        chip = 0.5*((1+delta)*chi1_z + (1-delta)*chi2_z)
+        chim = 0.5*((1+delta)*chi1_z - (1-delta)*chi2_z)
+
+        X = _make_stacked_array(
+            delta,
+            chip,
+            chim,
+            chi1_x,
+            chi1_y,
+            chi2_x,
+            chi2_y,
+        )
+
+        final_mass_samples = 1 - self._fit_massf.sample_y(X, n_samples=n_samples)
+        return final_mass_samples
+
+    def sample_chifz(
+        self,
+        delta,
+        chi1_x,
+        chi1_y,
+        chi1_z,
+        chi2_x,
+        chi2_y,
+        chi2_z,
+        n_samples=1
+    ):
+        """
+        Draw samples of the z component of the remnant spin from the predictive distribution corresponding to the query points.
+
+
+        Parameters
+        ----------
+        delta : array_like of shape (n_samples,) or float
+            Asymmetric mass ratio of the query points. delta = (q-1)/(q+1) where q is the mass ratio. q = m1/m2 >= 1.
+
+        chi1_x : array_like of shape (n_samples,) or float
+            x-component of the primary spin at ISCO.
+
+        chi1_y : array_like of shape (n_samples,) or float
+            y-component of the primary spin at ISCO.
+
+        chi1_z : array_like of shape (n_samples,) or float
+            z-component of the primary spin at ISCO.
+
+        chi2_x : array_like of shape (n_samples,) or float
+            x-component of the secondary spin at ISCO.
+
+        chi2_y : array_like of shape (n_samples,) or float
+            y-component of the secondary spin at ISCO.
+
+        chi2_z : array_like of shape (n_samples,) or float
+            z-component of the secondary spin at ISCO.
+
+        n_samples : int
+            Number of samples to draw from the predictive distribution.
+        """
+        
+        ## transform to chip and chim
+        chip = 0.5*((1+delta)*chi1_z + (1-delta)*chi2_z)
+        chim = 0.5*((1+delta)*chi1_z - (1-delta)*chi2_z)
+
+        X = _make_stacked_array(
+            delta,
+            chip,
+            chim,
+            chi1_x,
+            chi1_y,
+            chi2_x,
+            chi2_y,
+        )
+
+        chifz_samples = self._fit_chifz.sample_y(X, n_samples=n_samples)
+        return chifz_samples
+
+    def sample_final_spin(
+        self,
+        delta,
+        chi1_x,
+        chi1_y,
+        chi1_z,
+        chi2_x,
+        chi2_y,
+        chi2_z,
+        n_samples=1
+    ):
+        """
+        Draw samples of the remnant spin from the predictive distribution corresponding to the query points.
+
+
+        Parameters
+        ----------
+        delta : array_like of shape (n_samples,) or float
+            Asymmetric mass ratio of the query points. delta = (q-1)/(q+1) where q is the mass ratio. q = m1/m2 >= 1.
+
+        chi1_x : array_like of shape (n_samples,) or float
+            x-component of the primary spin at ISCO.
+
+        chi1_y : array_like of shape (n_samples,) or float
+            y-component of the primary spin at ISCO.
+
+        chi1_z : array_like of shape (n_samples,) or float
+            z-component of the primary spin at ISCO.
+
+        chi2_x : array_like of shape (n_samples,) or float
+            x-component of the secondary spin at ISCO.
+
+        chi2_y : array_like of shape (n_samples,) or float
+            y-component of the secondary spin at ISCO.
+
+        chi2_z : array_like of shape (n_samples,) or float
+            z-component of the secondary spin at ISCO.
+
+        n_samples : int
+            Number of samples to draw from the predictive distribution.
+        """
+        
+        ## transform to chip and chim
+        chip = 0.5*((1+delta)*chi1_z + (1-delta)*chi2_z)
+        chim = 0.5*((1+delta)*chi1_z - (1-delta)*chi2_z)
+        m1 = 0.5*(1+delta)
+        m2 = 0.5*(1-delta)
+        chi_perp = ((m1**2*chi1_x + m2**2*chi2_x)**2 + (m1**2*chi1_y + m2**2*chi2_y)**2)**0.5
+
+        X = _make_stacked_array(
+            delta,
+            chip,
+            chim,
+            chi1_x,
+            chi1_y,
+            chi2_x,
+            chi2_y,
+        )
+
+        chifz_samples = self._fit_chifz.sample_y(X, n_samples=n_samples)
+        chif_perp_samples = self._fit_chif_perp.sample_y(X, n_samples=n_samples)
+        chif_perp_samples = chif_perp_samples + chi_perp
+        final_spin_samples = (chifz_samples**2 + chif_perp_samples**2)**0.5
+        return final_spin_samples
+
+    def sample_chif_perp(
+        self,
+        delta,
+        chi1_x,
+        chi1_y,
+        chi1_z,
+        chi2_x,
+        chi2_y,
+        chi2_z,
+        n_samples=1
+    ):
+        """
+        Draw samples of chif_perp from the predictive distribution corresponding to the query points.
+
+
+        Parameters
+        ----------
+        delta : array_like of shape (n_samples,) or float
+            Asymmetric mass ratio of the query points. delta = (q-1)/(q+1) where q is the mass ratio. q = m1/m2 >= 1.
+
+        chi1_x : array_like of shape (n_samples,) or float
+            x-component of the primary spin at ISCO.
+
+        chi1_y : array_like of shape (n_samples,) or float
+            y-component of the primary spin at ISCO.
+
+        chi1_z : array_like of shape (n_samples,) or float
+            z-component of the primary spin at ISCO.
+
+        chi2_x : array_like of shape (n_samples,) or float
+            x-component of the secondary spin at ISCO.
+
+        chi2_y : array_like of shape (n_samples,) or float
+            y-component of the secondary spin at ISCO.
+
+        chi2_z : array_like of shape (n_samples,) or float
+            z-component of the secondary spin at ISCO.
+
+        n_samples : int
+            Number of samples to draw from the predictive distribution.
+        """
+
+        ## transform to chip and chim
+        chip = 0.5*((1+delta)*chi1_z + (1-delta)*chi2_z)
+        chim = 0.5*((1+delta)*chi1_z - (1-delta)*chi2_z)
+        m1 = 0.5*(1+delta)
+        m2 = 0.5*(1-delta)
+        chi_perp = ((m1**2*chi1_x + m2**2*chi2_x)**2 + (m1**2*chi1_y + m2**2*chi2_y)**2)**0.5
+
+        X = _make_stacked_array(
+            delta,
+            chip,
+            chim,
+            chi1_x,
+            chi1_y,
+            chi2_x,
+            chi2_y,
+        )
+
+        chif_perp_samples = self._fit_chif_perp.sample_y(X, n_samples=n_samples)
+        chif_perp_samples = chif_perp_samples + chi_perp
+        return chif_perp_samples
+
+        
 class AmplitudeFitPrec6dq10:
     def __init__(self, fit_dict):
         self._fit_amps = fit_dict["amps"]
@@ -1529,8 +2003,8 @@ class AmplitudeFit3dq8:
         return out
 
     def _shift_amp(self,amp,mass_ratio,chi1z,chi2z,lm,mode,start_time,qnm_method="interp"):
-        if start_time == self.t0:
-            return amp
+        #if start_time == self.t0:
+        #    return amp
         DT = start_time - self.t0
         mass1 = mass_ratio/(1+mass_ratio)
         mass2 = 1/(1+mass_ratio)
@@ -1546,12 +2020,12 @@ class AmplitudeFit3dq8:
             inv_tau = (1.0/qnm_Kerr(mf,sf,mode,qnm_method=qnm_method,SI_units=False)[1])
         if lm!=(2, 2) or mode!=(2, 2, 0):
             inv_tau -= (1.0/qnm_Kerr(mf, sf, (2, 2, 0), qnm_method=qnm_method, SI_units=False)[1])
-        out = amp*np.exp(-DT*inv_tau)
+        out = ((amp.T)*np.exp(-DT*inv_tau)).T
         return out
 
     def _shift_phase(self,phase,mass_ratio,chi1z,chi2z,lm,mode,start_time, qnm_method="interp"):
-        if start_time == self.t0:
-            return phase
+        #if start_time == self.t0:
+        #    return phase
         DT = start_time - self.t0
         mass1 = mass_ratio/(1 + mass_ratio)
         mass2 = 1/(1 + mass_ratio)
@@ -1567,7 +2041,7 @@ class AmplitudeFit3dq8:
             freq = (1.0/qnm_Kerr(mf,sf,mode,qnm_method=qnm_method,SI_units=False)[0])
         if lm!=(2,2) or mode!=(2,2,0):
             freq -= (0.5*lm[1]*qnm_Kerr(mf,sf,(2,2,0),qnm_method=qnm_method,SI_units=False)[0])
-        out = phase + 2*np.pi*freq*DT
+        out = (phase.T + 2*np.pi*freq*DT).T
         out = np.angle(np.exp(1j*out))
         return out
 
