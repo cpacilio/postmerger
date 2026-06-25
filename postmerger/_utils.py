@@ -5,6 +5,7 @@ import os
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
 import numpy as np
+import math
 from copy import deepcopy
 
 ## fundamental constants from astropy
@@ -26,7 +27,7 @@ def custom_factorial(k):
     """
     if k < 0:
         return 0.0
-    return np.math.factorial(k)
+    return math.factorial(k)
 
 
 def Wigner3j(j1, j2, j3, m1, m2, m3):
@@ -224,6 +225,7 @@ def final_mass(
         Method to use to compute the final spin. Allowed methods: ['B12','phenom'].
         If 'B12', it uses the fit in https://arxiv.org/abs/1206.3803 .
         If 'phenom', it uses the fit in https://arxiv.org/abs/1508.07250 .
+        If 'eob', it uses the fit in https://arxiv.org/abs/2004.09442
 
     aligned_spins : bool. Default=False.
         Whether to assume aligned spins. If True, spin1 and spin2 can also be negative.
@@ -233,7 +235,7 @@ def final_mass(
     -------
         float or array_like
     """
-    allowed_methods = ["B12", "phenom"]
+    allowed_methods = ["B12", "phenom", "eob"]
     if method not in allowed_methods:
         raise ValueError("method must be one of " + str(allowed_methods))
 
@@ -294,6 +296,18 @@ def final_mass(
             * (1 + a_tot * (-0.00303023 - 2.00661 * eta + 7.70506 * eta**2))
             / (1 + a_tot * (-0.67144 - 1.47569 * eta + 7.30468 * eta**2))
         )
+        m_rad = E_rad * m_tot
+        m_fin = m_tot - m_rad
+
+    elif method == "eob":
+        ## use https://arxiv.org/abs/2004.09442
+        a_tot = (
+            spin1 * np.cos(beta) * mass1**2 + spin2 * np.cos(gamma) * mass2**2
+        ) / (mass1 + mass2) ** 2
+        E_rad = (1 - E_isco(a_tot))*eta 
+        + 16*eta**2*(0.00258
+            - 0.0773/(a_tot*(mass1 + mass2)**2/(mass1**2+mass2**2)-1.6939)
+            - 0.25*(1-E_isco(a_tot)))
         m_rad = E_rad * m_tot
         m_fin = m_tot - m_rad
 
